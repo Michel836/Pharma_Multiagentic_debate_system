@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔬 Système Multi-Agent Pharmaceutique - Débat & Validation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .status-active {
+            background: #48bb78;
+            animation: pulse 2s infinite;
+        }
+
+        .status-inactive {
+            background: #fc8181;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(72, 187, 120, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(72, 187, 120, 0); }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .control-panel h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #fc8181;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message-agent {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .message-system {
+            background: #edf2f7;
+            color: #2d3748;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .message-header {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .message-time {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .message-content {
+            line-height: 1.6;
+        }
+
+        .voting-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .voting-panel h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .vote-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .vote-bar {
+            width: 100px;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .vote-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            transition: width 0.5s ease-out;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #48bb78;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #fc8181;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border-left: 4px solid #4299e1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔬 Système Multi-Agent Pharmaceutique</h1>
+            <p>Plateforme de débat et validation avec IA pour l'industrie pharmaceutique R&D</p>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-indicator status-inactive" id="ollama-status"></span>
+                <span>Ollama: <span id="ollama-text">Déconnecté</span></span>
+            </div>
+            <div class="status-item">
+                <span>Modèle: <span id="model-text">qwen3:4b</span></span>
+            </div>
+            <div class="status-item">
+                <span>Agents actifs: <span id="agents-count">0</span></span>
+            </div>
+            <div class="status-item">
+                <span>Round: <span id="round-count">0/0</span></span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <h2>⚙️ Configuration</h2>
+                
+                <div class="form-group">
+                    <label for="num-agents">Nombre d'agents</label>
+                    <select id="num-agents">
+                        <option value="3">3 agents</option>
+                        <option value="5" selected>5 agents</option>
+                        <option value="7">7 agents</option>
+                        <option value="10">10 agents</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="num-rounds">Nombre de rounds</label>
+                    <select id="num-rounds">
+                        <option value="1">1 round</option>
+                        <option value="3" selected>3 rounds</option>
+                        <option value="5">5 rounds</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="debate-question">Question de débat</label>
+                    <textarea id="debate-question" placeholder="Ex: Quelle est la meilleure approche pour développer un nouveau traitement contre l'Alzheimer?">Quelle est la meilleure stratégie pour optimiser les essais cliniques de phase III tout en maintenant l'intégrité des données?</textarea>
+                </div>
+
+                <button class="btn btn-secondary" onclick="testConnection()">
+                    🔍 Test Connexion
+                </button>
+                <button class="btn btn-primary" onclick="startDebate()" id="start-btn">
+                    🚀 Démarrer Débat
+                </button>
+                <button class="btn btn-danger" onclick="stopDebate()" id="stop-btn" disabled>
+                    ⏹️ Arrêter
+                </button>
+
+                <div id="alerts"></div>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2>💬 Débat en cours</h2>
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message-system">
+                        <div class="message-content">
+                            Bienvenue ! Cliquez sur "Test Connexion" pour vérifier Ollama, puis "Démarrer Débat" pour lancer la discussion.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voting & Metrics -->
+        <div class="voting-panel">
+            <h3>📊 Votes & Métriques</h3>
+            <div id="voting-results"></div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="consensus">0%</div>
+                    <div class="metric-label">Consensus</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="response-time">0ms</div>
+                    <div class="metric-label">Temps de réponse</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="confidence">0%</div>
+                    <div class="metric-label">Confiance moyenne</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="arguments">0</div>
+                    <div class="metric-label">Arguments totaux</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const OLLAMA_URL = 'http://localhost:11434';
+        const MODEL = 'qwen3:4b';
+        let debateActive = false;
+        let agents = [];
+        let currentRound = 0;
+        let totalRounds = 0;
+        let argumentCount = 0;
+
+        // Fonction pour afficher les alertes
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertDiv.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Fonction pour ajouter un message au chat
+        function addMessage(content, type = 'system', agent = null) {
+            const chatMessages = document.getElementById('chat-messages');
+            const message = document.createElement('div');
+            message.className = 'message';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            
+            if (type === 'agent') {
+                message.innerHTML = `
+                    <div class="message-agent">
+                        <div class="message-header">
+                            <span>🤖 ${agent}</span>
+                            <span class="message-time">${timestamp}</span>
+                        </div>
+                        <div class="message-content">${content}</div>
+                    </div>
+                `;
+                argumentCount++;
+                document.getElementById('arguments').textContent = argumentCount;
+            } else {
+                message.innerHTML = `
+                    <div class="message-system">
+                        <div class="message-header">
+                            <span>📢 Système</span>
+                            <span class="message-time">${timestamp}</span>
+                        </div>
+                        <div class="message-content">${content}</div>
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(message);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Test de connexion Ollama
+        async function testConnection() {
+            try {
+                addMessage('Test de connexion à Ollama...');
+                
+                const response = await fetch(`${OLLAMA_URL}/api/tags`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const models = data.models || [];
+                    const hasModel = models.some(m => m.name === MODEL);
+                    
+                    if (hasModel) {
+                        document.getElementById('ollama-status').className = 'status-indicator status-active';
+                        document.getElementById('ollama-text').textContent = 'Connecté';
+                        showAlert(`✅ Connexion réussie ! Modèle ${MODEL} disponible.`, 'success');
+                        addMessage(`✅ Ollama connecté avec succès. Modèle ${MODEL} prêt.`);
+                    } else {
+                        showAlert(`⚠️ Modèle ${MODEL} non trouvé. Installation en cours...`, 'info');
+                        await pullModel();
+                    }
+                } else {
+                    throw new Error('Ollama non accessible');
+                }
+            } catch (error) {
+                document.getElementById('ollama-status').className = 'status-indicator status-inactive';
+                document.getElementById('ollama-text').textContent = 'Erreur';
+                showAlert('❌ Erreur de connexion à Ollama. Vérifiez qu\'il est démarré.', 'error');
+                addMessage('❌ Impossible de se connecter à Ollama. Assurez-vous qu\'il est démarré sur le port 11434.');
+            }
+        }
+
+        // Télécharger le modèle si nécessaire
+        async function pullModel() {
+            try {
+                addMessage(`📥 Téléchargement du modèle ${MODEL}...`);
+                const response = await fetch(`${OLLAMA_URL}/api/pull`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: MODEL })
+                });
+                
+                if (response.ok) {
+                    showAlert(`✅ Modèle ${MODEL} installé avec succès !`, 'success');
+                    addMessage(`✅ Modèle ${MODEL} prêt à l'utilisation.`);
+                    document.getElementById('ollama-status').className = 'status-indicator status-active';
+                    document.getElementById('ollama-text').textContent = 'Connecté';
+                }
+            } catch (error) {
+                showAlert('❌ Erreur lors du téléchargement du modèle.', 'error');
+            }
+        }
+
+        // Générer une réponse avec Ollama
+        async function generateResponse(prompt, agentName) {
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch(`${OLLAMA_URL}/api/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: MODEL,
+                        prompt: prompt,
+                        stream: false,
+                        options: {
+                            temperature: 0.7,
+                            top_p: 0.9,
+                            max_tokens: 500
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const responseTime = Date.now() - startTime;
+                    document.getElementById('response-time').textContent = `${responseTime}ms`;
+                    return data.response;
+                }
+            } catch (error) {
+                console.error('Erreur génération:', error);
+                return null;
+            }
+        }
+
+        // Démarrer le débat
+        async function startDebate() {
+            if (debateActive) return;
+            
+            const question = document.getElementById('debate-question').value;
+            if (!question.trim()) {
+                showAlert('⚠️ Veuillez entrer une question de débat.', 'error');
+                return;
+            }
+
+            debateActive = true;
+            argumentCount = 0;
+            currentRound = 0;
+            
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('stop-btn').disabled = false;
+            
+            // Configuration
+            const numAgents = parseInt(document.getElementById('num-agents').value);
+            totalRounds = parseInt(document.getElementById('num-rounds').value);
+            
+            // Créer les agents
+            agents = [];
+            const roles = [
+                'Expert Réglementaire (FDA/EMA)',
+                'Expert Clinique (Essais Phase III)',
+                'Expert Qualité (GxP)',
+                'Expert Data Integrity',
+                'Expert Pharmacovigilance',
+                'Expert Manufacturing',
+                'Expert Biostatistique',
+                'Expert Affaires Médicales',
+                'Expert Market Access',
+                'Expert Digital Health'
+            ];
+            
+            for (let i = 0; i < numAgents; i++) {
+                agents.push({
+                    name: roles[i] || `Agent ${i + 1}`,
+                    score: 0
+                });
+            }
+            
+            document.getElementById('agents-count').textContent = numAgents;
+            
+            // Clear chat
+            document.getElementById('chat-messages').innerHTML = '';
+            addMessage(`🚀 Débat démarré avec ${numAgents} agents sur ${totalRounds} rounds.`);
+            addMessage(`📋 Question: ${question}`);
+            
+            // Lancer le débat
+            for (let round = 1; round <= totalRounds; round++) {
+                if (!debateActive) break;
+                
+                currentRound = round;
+                document.getElementById('round-count').textContent = `${round}/${totalRounds}`;
+                
+                addMessage(`\n🔄 === ROUND ${round}/${totalRounds} ===\n`);
+                
+                for (let agent of agents) {
+                    if (!debateActive) break;
+                    
+                    // Construire le prompt pour l'agent
+                    const prompt = `Tu es ${agent.name} dans un débat pharmaceutique.
+Question: ${question}
+
+Round ${round}/${totalRounds}
+
+Donne ton opinion professionnelle en 2-3 phrases maximum. Sois précis et technique.`;
+                    
+                    // Générer la réponse
+                    const response = await generateResponse(prompt, agent.name);
+                    
+                    if (response) {
+                        addMessage(response, 'agent', agent.name);
+                        
+                        // Simuler un vote/score
+                        agent.score += Math.random() * 10;
+                    }
+                    
+                    // Petite pause entre agents
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
+                // Mettre à jour les métriques
+                updateMetrics();
+            }
+            
+            if (debateActive) {
+                addMessage('✅ Débat terminé ! Analyse des résultats...');
+                showResults();
+            }
+            
+            debateActive = false;
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+        }
+
+        // Arrêter le débat
+        function stopDebate() {
+            debateActive = false;
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+            addMessage('⏹️ Débat arrêté par l\'utilisateur.');
+        }
+
+        // Mettre à jour les métriques
+        function updateMetrics() {
+            // Calcul du consensus (simulé)
+            const consensus = Math.round(60 + Math.random() * 30);
+            document.getElementById('consensus').textContent = `${consensus}%`;
+            
+            // Confiance moyenne (simulée)
+            const confidence = Math.round(70 + Math.random() * 25);
+            document.getElementById('confidence').textContent = `${confidence}%`;
+        }
+
+        // Afficher les résultats
+        function showResults() {
+            const votingDiv = document.getElementById('voting-results');
+            votingDiv.innerHTML = '<h4>Résultats des votes:</h4>';
+            
+            // Trier les agents par score
+            agents.sort((a, b) => b.score - a.score);
+            
+            const maxScore = Math.max(...agents.map(a => a.score));
+            
+            agents.forEach((agent, index) => {
+                const percentage = Math.round((agent.score / maxScore) * 100);
+                votingDiv.innerHTML += `
+                    <div class="vote-item">
+                        <span>${index + 1}. ${agent.name}</span>
+                        <div class="vote-bar">
+                            <div class="vote-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <span>${percentage}%</span>
+                    </div>
+                `;
+            });
+            
+            addMessage(`🏆 Consensus principal: ${agents[0].name} avec le score le plus élevé.`);
+        }
+
+        // Test automatique au chargement
+        window.onload = () => {
+            setTimeout(testConnection, 1000);
+        };
+    </script>
+</body>
+</html>

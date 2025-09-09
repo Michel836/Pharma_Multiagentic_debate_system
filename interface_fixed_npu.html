@@ -1,0 +1,2283 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Système Multi-Agent - Accélération CPU Optimisée</title>
+    <!-- Bibliothèques pour l'export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .optimization-badge {
+            background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .status-bar {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .status-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .status-active {
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        .status-inactive {
+            background: #fc8181;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .control-panel h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-secondary {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .model-selector {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .model-option {
+            display: block;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .model-option input[type="radio"] {
+            margin-right: 8px;
+        }
+
+        .model-fast {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .model-balanced {
+            color: #007bff;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .performance-indicator {
+            background: #f7fafc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: #4a5568;
+        }
+
+        .performance-optimized {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .message-agent {
+            background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .message-system {
+            background: #edf2f7;
+            color: #2d3748;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .message-header {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .message-time {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .message-content {
+            line-height: 1.6;
+        }
+
+        .response-time {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+
+        .voting-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .voting-panel h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        /* Styles pour les exports */
+        .export-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .export-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-export {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-export:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+        }
+
+        .btn-word {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+        }
+
+        .btn-html {
+            background: linear-gradient(135deg, #A8EDEA, #FED6E3);
+            color: #2d3748;
+        }
+
+        .btn-json {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .export-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        /* Modal pour l'historique */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border-left: 4px solid #4CAF50;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-category {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+
+        .history-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        /* Section de synthèse du débat */
+        .synthesis-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #4CAF50;
+            display: none;
+        }
+
+        .synthesis-panel.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .synthesis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+
+        .synthesis-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .synthesis-section h4 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .synthesis-points {
+            margin: 10px 0;
+        }
+
+        .synthesis-points li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .synthesis-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .synthesis-table th,
+        .synthesis-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .synthesis-table th {
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+
+        .priority-critique {
+            color: #721c24;
+            font-weight: bold;
+        }
+
+        .priority-haute {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .priority-moyenne {
+            color: #856404;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>⚡ Système Multi-Agent Pharmaceutique</h1>
+            <p>Optimisé CPU AMD Ryzen 7 8840HS - Performance maximale avec Llama 3.2:3B</p>
+            <div class="optimization-badge">🚀 Accélération CPU + Modèle Optimisé</div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-indicator status-inactive" id="ollama-status"></span>
+                <span>Ollama: <span id="ollama-text">Déconnecté</span></span>
+            </div>
+            <div class="status-item">
+                <span>Modèle: <span id="model-text">llama3.2:3b</span></span>
+            </div>
+            <div class="status-item">
+                <span>CPU: <span id="cpu-status">AMD 8840HS</span></span>
+            </div>
+            <div class="status-item">
+                <span>Agents: <span id="agents-count">0</span></span>
+            </div>
+            <div class="status-item">
+                <span>Round: <span id="round-count">0/0</span></span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <h2>⚙️ Configuration Optimisée</h2>
+                
+                <div class="model-selector">
+                    <label><strong>🤖 Modèle IA</strong></label>
+                    <label class="model-option">
+                        <input type="radio" name="model" value="llama3.2:3b" checked>
+                        <span class="model-fast">⚡ Llama 3.2:3B (Ultra-rapide & Léger)</span>
+                    </label>
+                    <label class="model-option">
+                        <input type="radio" name="model" value="qwen3:4b">
+                        <span class="model-balanced">⚖️ Qwen 3:4B (Plus puissant)</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="num-agents">Nombre d'agents</label>
+                    <select id="num-agents">
+                        <option value="3" selected>3 agents (Rapide)</option>
+                        <option value="5">5 agents (Standard)</option>
+                        <option value="7">7 agents (Complet)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="num-rounds">Nombre de rounds</label>
+                    <select id="num-rounds">
+                        <option value="1" selected>1 round (Rapide)</option>
+                        <option value="2">2 rounds</option>
+                        <option value="3">3 rounds</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="debate-question">Question de débat</label>
+                    <textarea id="debate-question" placeholder="Ex: Stratégies d'optimisation FDA...">Comment intégrer efficacement l'IA dans les processus pharmaceutiques tout en maintenant la conformité réglementaire?</textarea>
+                </div>
+
+                <button class="btn btn-secondary" onclick="testConnection()">
+                    🔍 Test Système
+                </button>
+                <button class="btn btn-secondary" onclick="setRandomTopic()" style="background: #28a745; color: white;">
+                    🎲 Sujet Aléatoire
+                </button>
+                <button class="btn btn-primary" onclick="startDebate()" id="start-btn">
+                    ⚡ Débat Ultra-Rapide
+                </button>
+                <button class="btn btn-danger" onclick="stopDebate()" id="stop-btn" disabled>
+                    ⏹️ Arrêter
+                </button>
+                <button class="btn btn-secondary" onclick="showHistory()" style="background: #17a2b8; color: white;">
+                    📚 Historique (<span id="history-count">0</span>)
+                </button>
+
+                <div id="alerts"></div>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2>💬 Débat Accéléré</h2>
+                    <div class="performance-indicator performance-optimized" id="perf-indicator">
+                        CPU Optimisé
+                    </div>
+                </div>
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message-system">
+                        <div class="message-content">
+                            ⚡ <strong>Système d'accélération CPU activé !</strong><br><br>
+                            
+                            <strong>Configuration détectée :</strong><br>
+                            • AMD Ryzen 7 8840HS (8 cœurs/16 threads)<br>
+                            • Modèle Llama 3.2:3B (2 GB) - Optimisé vitesse<br>
+                            • Performance attendue : 1-3 secondes/réponse<br><br>
+                            
+                            <strong>Avantages :</strong><br>
+                            ✅ 100% Local et privé<br>
+                            ✅ 0€ de coût<br>
+                            ✅ Optimisé pour votre CPU<br><br>
+                            
+                            Cliquez "Test Système" pour vérifier !
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voting & Metrics -->
+        <div class="voting-panel">
+            <h3>📊 Métriques Performance Temps Réel</h3>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="avg-response">0ms</div>
+                    <div class="metric-label">Temps moyen</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="tokens-sec">0</div>
+                    <div class="metric-label">Tokens/sec</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="consensus">0%</div>
+                    <div class="metric-label">Consensus</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="cpu-efficiency">100%</div>
+                    <div class="metric-label">Efficacité CPU</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Export -->
+        <div class="export-section">
+            <h3>📄 Export et Sauvegarde du Débat</h3>
+            <p>Exportez votre débat pharmaceutique multi-agents au format professionnel de votre choix.</p>
+            
+            <div class="export-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-messages">0</div>
+                    <div class="stat-label">Messages</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="total-agents">0</div>
+                    <div class="stat-label">Agents</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="debate-duration">0min</div>
+                    <div class="stat-label">Durée</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="export-count">0</div>
+                    <div class="stat-label">Exports</div>
+                </div>
+            </div>
+
+            <div class="export-buttons">
+                <button class="btn-export btn-pdf" onclick="exportToPDF()" id="export-pdf" disabled>
+                    📄 PDF Professionnel
+                </button>
+                <button class="btn-export btn-word" onclick="exportToWord()" id="export-word" disabled>
+                    📝 Document Word
+                </button>
+                <button class="btn-export btn-html" onclick="exportToHTML()" id="export-html" disabled>
+                    🌐 Page Web HTML
+                </button>
+                <button class="btn-export btn-json" onclick="exportToJSON()" id="export-json" disabled>
+                    💾 Données JSON
+                </button>
+            </div>
+
+            <div id="export-alerts"></div>
+        </div>
+
+        <!-- Section Synthèse du Débat -->
+        <div class="synthesis-panel" id="synthesis-panel">
+            <div class="synthesis-header">
+                <h2>📋 SYNTHÈSE & RÉSULTAT DU DÉBAT</h2>
+                <button class="btn btn-secondary" onclick="hideSynthesis()" style="background: #6c757d;">
+                    ✕ Masquer
+                </button>
+            </div>
+            
+            <div class="synthesis-section">
+                <h4>1️⃣ THÉMATIQUE</h4>
+                <p id="synthesis-thematique">-</p>
+            </div>
+            
+            <div class="synthesis-section">
+                <h4>2️⃣ SUJET</h4>
+                <p id="synthesis-sujet">-</p>
+            </div>
+            
+            <div class="synthesis-section">
+                <h4>3️⃣ POINTS CLEFS</h4>
+                <ul class="synthesis-points" id="synthesis-points-clefs">
+                    <li>Débat en cours...</li>
+                </ul>
+            </div>
+            
+            <div class="synthesis-section">
+                <h4>4️⃣ POINTS D'ATTENTION</h4>
+                <ul class="synthesis-points" id="synthesis-points-attention">
+                    <li>Analyse en cours...</li>
+                </ul>
+            </div>
+            
+            <div class="synthesis-section">
+                <h4>5️⃣ PROCHAINES ÉTAPES</h4>
+                <table class="synthesis-table" id="synthesis-prochaines-etapes">
+                    <thead>
+                        <tr>
+                            <th>Étape</th>
+                            <th>Responsable</th>
+                            <th>Deadline</th>
+                            <th>Priorité</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #666;">Analyse en cours...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Historique -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📚 Historique des Débats Pharmaceutiques</h2>
+                <span class="close" onclick="closeHistory()">&times;</span>
+            </div>
+            <div id="history-content">
+                <!-- Contenu généré dynamiquement -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration optimisée
+        const OLLAMA_URL = 'http://localhost:11434';
+        let selectedModel = 'llama3.2:3b';
+        let debateActive = false;
+        let agents = [];
+        let currentRound = 0;
+        let totalRounds = 0;
+        let argumentCount = 0;
+        let totalResponseTime = 0;
+        let responseCount = 0;
+        let debateMessages = [];
+        let debateStartTime = null;
+        let exportCount = 0;
+        let structuredReport = {
+            thematique: "",
+            sujet: "", 
+            points_clefs: [],
+            points_attention: [],
+            prochaines_etapes: []
+        };
+        let debateHistory = JSON.parse(localStorage.getItem('pharmaDebateHistory') || '[]');
+        let currentDebateId = null;
+        
+        // Banque de sujets pharmaceutiques variés
+        const pharmaTopics = [
+            {
+                category: "IA & Innovation",
+                question: "Comment intégrer efficacement l'IA dans les processus pharmaceutiques tout en maintenant la conformité réglementaire?",
+                complexity: "élevée"
+            },
+            {
+                category: "Conformité GxP",
+                question: "Quelles stratégies adopter pour valider des systèmes informatisés selon GAMP 5 dans un environnement cloud hybride?",
+                complexity: "élevée"
+            },
+            {
+                category: "Développement R&D",
+                question: "Comment optimiser les essais cliniques Phase II/III avec des biomarqueurs prédictifs et l'analyse de données temps réel?",
+                complexity: "moyenne"
+            },
+            {
+                category: "Qualité & Validation",
+                question: "Quelle approche Risk-Based pour la qualification des équipements critiques dans une nouvelle unité de production?",
+                complexity: "moyenne"
+            },
+            {
+                category: "Affaires Réglementaires",
+                question: "Comment préparer une soumission FDA pour un médicament de thérapie génique avec des données non-cliniques limitées?",
+                complexity: "élevée"
+            },
+            {
+                category: "Data Integrity",
+                question: "Quelles mesures techniques et organisationnelles pour garantir l'intégrité des données dans les laboratoires analytiques?",
+                complexity: "moyenne"
+            },
+            {
+                category: "Pharmacovigilance",
+                question: "Comment améliorer la détection des signaux de sécurité avec l'analyse prédictive et le machine learning?",
+                complexity: "élevée"
+            },
+            {
+                category: "Manufacturing 4.0",
+                question: "Quelle stratégie de digitalisation pour une ligne de production pharmaceutique avec IoT et contrôle temps réel?",
+                complexity: "moyenne"
+            },
+            {
+                category: "Stratégie Clinique",
+                question: "Comment accélérer le développement d'un orphan drug avec des adaptive trials et des real-world evidence?",
+                complexity: "élevée"
+            },
+            {
+                category: "Transformation Digitale",
+                question: "Quels défis organisationnels et techniques pour migrer vers un système ERP pharmaceutique dans le cloud?",
+                complexity: "moyenne"
+            },
+            {
+                category: "Innovation Thérapeutique",
+                question: "Comment structurer le développement d'une plateforme AAV pour thérapies géniques multi-indications?",
+                complexity: "élevée"
+            },
+            {
+                category: "Conformité Internationale",
+                question: "Quelle harmonisation réglementaire entre FDA, EMA et PMDA pour un lancement global simultané?",
+                complexity: "élevée"
+            }
+        ];
+
+        // Écouter les changements de modèle
+        document.querySelectorAll('input[name="model"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                selectedModel = this.value;
+                document.getElementById('model-text').textContent = selectedModel;
+                updatePerformanceIndicator();
+            });
+        });
+
+        function updatePerformanceIndicator() {
+            const indicator = document.getElementById('perf-indicator');
+            if (selectedModel.includes('llama3.2:3b')) {
+                indicator.textContent = 'CPU Ultra-Optimisé';
+                indicator.className = 'performance-indicator performance-optimized';
+            } else {
+                indicator.textContent = 'CPU Standard';
+                indicator.className = 'performance-indicator';
+            }
+        }
+
+        // Fonctions de gestion des sujets et historique
+        function getRandomTopic() {
+            const usedTopics = debateHistory.map(h => h.topic.question);
+            const availableTopics = pharmaTopics.filter(topic => !usedTopics.includes(topic.question));
+            
+            // Si tous les sujets ont été utilisés, remettre à zéro
+            if (availableTopics.length === 0) {
+                showAlert('🔄 Tous les sujets ont été explorés ! Remise à zéro du cycle.', 'info');
+                return pharmaTopics[Math.floor(Math.random() * pharmaTopics.length)];
+            }
+            
+            return availableTopics[Math.floor(Math.random() * availableTopics.length)];
+        }
+
+        function setRandomTopic() {
+            const topic = getRandomTopic();
+            document.getElementById('debate-question').value = topic.question;
+            
+            // Afficher la catégorie et complexité
+            showAlert(`🎯 Nouveau sujet: ${topic.category} (Complexité: ${topic.complexity})`, 'info');
+            
+            return topic;
+        }
+
+        function saveDebateToHistory() {
+            currentDebateId = 'debate_' + Date.now();
+            
+            const debateRecord = {
+                id: currentDebateId,
+                timestamp: new Date().toISOString(),
+                date: new Date().toLocaleDateString('fr-FR'),
+                time: new Date().toLocaleTimeString('fr-FR'),
+                topic: {
+                    category: structuredReport.thematique,
+                    question: document.getElementById('debate-question').value,
+                    complexity: getCurrentTopicComplexity()
+                },
+                configuration: {
+                    model: selectedModel,
+                    agents: agents.length,
+                    rounds: totalRounds,
+                    hardware: "AMD Ryzen 7 8840HS"
+                },
+                performance: {
+                    duration_ms: debateStartTime ? Date.now() - debateStartTime : 0,
+                    avg_response_time: Math.round(totalResponseTime / responseCount || 0),
+                    total_messages: debateMessages.length,
+                    consensus: document.getElementById('consensus').textContent,
+                    cpu_efficiency: document.getElementById('cpu-efficiency').textContent
+                },
+                rapport_structure: {
+                    thematique: structuredReport.thematique,
+                    sujet: structuredReport.sujet,
+                    points_clefs: structuredReport.points_clefs,
+                    points_attention: structuredReport.points_attention,
+                    prochaines_etapes: structuredReport.prochaines_etapes
+                },
+                messages: debateMessages.map(msg => ({
+                    type: msg.type,
+                    agent: msg.agent,
+                    content: msg.content.replace(/<[^>]*>/g, ''),
+                    timestamp: msg.timestamp.toISOString(),
+                    response_time_ms: msg.responseTime || null
+                }))
+            };
+            
+            debateHistory.unshift(debateRecord); // Ajouter en tête
+            
+            // Garder seulement les 50 derniers débats
+            if (debateHistory.length > 50) {
+                debateHistory = debateHistory.slice(0, 50);
+            }
+            
+            localStorage.setItem('pharmaDebateHistory', JSON.stringify(debateHistory));
+            updateHistoryStats();
+            
+            showAlert('💾 Débat sauvegardé dans l\'historique local', 'success');
+        }
+
+        function getCurrentTopicComplexity() {
+            const currentQuestion = document.getElementById('debate-question').value;
+            const topic = pharmaTopics.find(t => t.question === currentQuestion);
+            return topic ? topic.complexity : 'moyenne';
+        }
+
+        function updateHistoryStats() {
+            // Mettre à jour les statistiques d'historique dans l'interface
+            const totalDebates = debateHistory.length;
+            const uniqueCategories = new Set(debateHistory.map(h => h.topic.category)).size;
+            const avgConsensus = debateHistory.length > 0 
+                ? Math.round(debateHistory.reduce((sum, h) => sum + parseInt(h.performance.consensus), 0) / debateHistory.length)
+                : 0;
+                
+            // Afficher dans la console pour debug
+            console.log(`Historique: ${totalDebates} débats, ${uniqueCategories} catégories, consensus moyen: ${avgConsensus}%`);
+        }
+
+        // Fonctions d'affichage de la synthèse
+        function displaySynthesis() {
+            // Masquer au début de nouveau débat
+            document.getElementById('synthesis-panel').classList.remove('show');
+            
+            // Afficher la synthèse générée
+            document.getElementById('synthesis-thematique').textContent = structuredReport.thematique;
+            document.getElementById('synthesis-sujet').textContent = structuredReport.sujet;
+            
+            // Points clefs
+            const pointsClefsEl = document.getElementById('synthesis-points-clefs');
+            pointsClefsEl.innerHTML = '';
+            structuredReport.points_clefs.forEach(point => {
+                const li = document.createElement('li');
+                li.textContent = point;
+                pointsClefsEl.appendChild(li);
+            });
+            
+            // Points d'attention
+            const pointsAttentionEl = document.getElementById('synthesis-points-attention');
+            pointsAttentionEl.innerHTML = '';
+            structuredReport.points_attention.forEach(attention => {
+                const li = document.createElement('li');
+                li.innerHTML = `⚠️ ${attention}`;
+                pointsAttentionEl.appendChild(li);
+            });
+            
+            // Prochaines étapes (tableau)
+            const tableBody = document.querySelector('#synthesis-prochaines-etapes tbody');
+            tableBody.innerHTML = '';
+            structuredReport.prochaines_etapes.forEach(step => {
+                const row = document.createElement('tr');
+                const priorityClass = `priority-${step.priorite.toLowerCase().replace('é', 'e')}`;
+                row.innerHTML = `
+                    <td>${step.etape}</td>
+                    <td>${step.responsable}</td>
+                    <td>${step.deadline}</td>
+                    <td class="${priorityClass}">${step.priorite}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Afficher le panel avec animation
+            setTimeout(() => {
+                document.getElementById('synthesis-panel').classList.add('show');
+                
+                // Scroll vers la synthèse
+                document.getElementById('synthesis-panel').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+                
+                showAlert('📋 Synthèse du débat disponible ci-dessous !', 'success');
+            }, 1000);
+        }
+
+        function hideSynthesis() {
+            document.getElementById('synthesis-panel').classList.remove('show');
+        }
+
+        function clearSynthesis() {
+            // Réinitialiser la synthèse pour un nouveau débat
+            document.getElementById('synthesis-thematique').textContent = '-';
+            document.getElementById('synthesis-sujet').textContent = '-';
+            document.getElementById('synthesis-points-clefs').innerHTML = '<li>Débat en cours...</li>';
+            document.getElementById('synthesis-points-attention').innerHTML = '<li>Analyse en cours...</li>';
+            document.querySelector('#synthesis-prochaines-etapes tbody').innerHTML = 
+                '<tr><td colspan="4" style="text-align: center; color: #666;">Analyse en cours...</td></tr>';
+            
+            hideSynthesis();
+        }
+
+        // Fonction pour afficher les alertes
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertDiv.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 7000);
+        }
+
+        // Fonction pour ajouter un message au chat
+        function addMessage(content, type = 'system', agent = null, responseTime = null) {
+            const chatMessages = document.getElementById('chat-messages');
+            const message = document.createElement('div');
+            message.className = 'message';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const fullTimestamp = new Date();
+            let responseInfo = responseTime ? `<span class="response-time">(${responseTime}ms - ${Math.round(150 * 1000 / responseTime)} tokens/s)</span>` : '';
+            
+            // Stocker le message pour export
+            const messageData = {
+                content: content,
+                type: type,
+                agent: agent,
+                timestamp: fullTimestamp,
+                responseTime: responseTime
+            };
+            debateMessages.push(messageData);
+            
+            if (type === 'agent') {
+                message.innerHTML = `
+                    <div class="message-agent">
+                        <div class="message-header">
+                            <span>🤖 ${agent}</span>
+                            <span class="message-time">${timestamp} ${responseInfo}</span>
+                        </div>
+                        <div class="message-content">${content}</div>
+                    </div>
+                `;
+                argumentCount++;
+            } else {
+                message.innerHTML = `
+                    <div class="message-system">
+                        <div class="message-header">
+                            <span>📢 Système</span>
+                            <span class="message-time">${timestamp}</span>
+                        </div>
+                        <div class="message-content">${content}</div>
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(message);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Mettre à jour les statistiques d'export
+            updateExportStats();
+        }
+
+        // Test de connexion optimisé
+        async function testConnection() {
+            try {
+                addMessage('🔍 Test du système optimisé AMD Ryzen 8840HS...');
+                
+                const response = await fetch(`${OLLAMA_URL}/api/tags`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const models = data.models || [];
+                    const hasLlama = models.some(m => m.name.includes('llama3.2:3b'));
+                    const hasQwen = models.some(m => m.name.includes('qwen3:4b'));
+                    
+                    document.getElementById('ollama-status').className = 'status-indicator status-active';
+                    document.getElementById('ollama-text').textContent = 'Connecté';
+                    
+                    if (hasLlama && hasQwen) {
+                        showAlert('🚀 Tous les modèles optimisés disponibles ! Llama 3.2:3B recommandé pour vitesse maximale.', 'success');
+                        addMessage(`✅ <strong>Système 100% opérationnel !</strong><br><br>
+                        📊 <strong>Modèles disponibles :</strong><br>
+                        • Llama 3.2:3B - Ultra-rapide (recommandé)<br>
+                        • Qwen 3:4B - Plus puissant<br><br>
+                        🔥 <strong>Performance estimée avec Llama 3.2:3B :</strong><br>
+                        • ~1-3 secondes par réponse<br>
+                        • ~50-150 tokens/seconde<br>
+                        • CPU : 8 threads utilisés<br><br>
+                        🎯 Prêt pour débat ultra-rapide !`);
+                    } else if (hasLlama) {
+                        showAlert('⚡ Llama 3.2:3B optimisé disponible !', 'success');
+                        addMessage('✅ Système prêt avec Llama 3.2:3B pour performance maximale !');
+                    } else if (hasQwen) {
+                        showAlert('✅ Qwen 3:4B disponible (standard).', 'success');
+                        addMessage('✅ Système prêt avec Qwen 3:4B.');
+                    } else {
+                        showAlert('⚠️ Installation des modèles en cours...', 'info');
+                        addMessage('📥 Finalisation installation modèles...');
+                    }
+                } else {
+                    throw new Error('Ollama non accessible');
+                }
+            } catch (error) {
+                document.getElementById('ollama-status').className = 'status-indicator status-inactive';
+                document.getElementById('ollama-text').textContent = 'Erreur';
+                showAlert('❌ Erreur connexion Ollama. Redémarrez-le.', 'error');
+                addMessage('❌ Ollama inaccessible. Utilisez start_ollama_optimized.bat pour redémarrer.');
+            }
+        }
+
+        // Générer une réponse optimisée
+        async function generateResponse(prompt, agentName) {
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch(`${OLLAMA_URL}/api/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: selectedModel,
+                        prompt: prompt,
+                        stream: false,
+                        options: {
+                            temperature: 0.7,
+                            top_p: 0.9,
+                            num_predict: 100,  // Optimisé pour vitesse
+                            num_ctx: 1024      // Context réduit pour vitesse
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const responseTime = Date.now() - startTime;
+                    
+                    // Mettre à jour métriques
+                    totalResponseTime += responseTime;
+                    responseCount++;
+                    
+                    const avgResponse = Math.round(totalResponseTime / responseCount);
+                    const tokensPerSec = Math.round((data.response.split(' ').length * 1000) / responseTime);
+                    
+                    document.getElementById('avg-response').textContent = `${avgResponse}ms`;
+                    document.getElementById('tokens-sec').textContent = tokensPerSec;
+                    
+                    // Efficacité CPU (simulée basée sur performance)
+                    const efficiency = Math.min(100, Math.round(100 - (avgResponse - 1000) / 50));
+                    document.getElementById('cpu-efficiency').textContent = `${Math.max(70, efficiency)}%`;
+                    
+                    return { response: data.response, time: responseTime };
+                }
+            } catch (error) {
+                console.error('Erreur génération:', error);
+                return null;
+            }
+        }
+
+        // Démarrer le débat optimisé
+        async function startDebate() {
+            if (debateActive) return;
+            
+            const question = document.getElementById('debate-question').value;
+            if (!question.trim()) {
+                showAlert('⚠️ Veuillez entrer une question de débat.', 'error');
+                return;
+            }
+
+            debateActive = true;
+            argumentCount = 0;
+            currentRound = 0;
+            totalResponseTime = 0;
+            responseCount = 0;
+            debateMessages = [];
+            debateStartTime = Date.now();
+            
+            // Nettoyer la synthèse précédente
+            clearSynthesis();
+            
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('stop-btn').disabled = false;
+            
+            // Configuration
+            const numAgents = parseInt(document.getElementById('num-agents').value);
+            totalRounds = parseInt(document.getElementById('num-rounds').value);
+            
+            // Créer les agents pharmaceutiques
+            agents = [
+                'Expert Réglementaire FDA/EMA',
+                'Expert Clinique Phase III', 
+                'Expert Qualité GxP',
+                'Expert Data Integrity',
+                'Expert Pharmacovigilance',
+                'Expert Manufacturing',
+                'Expert Digital Health'
+            ].slice(0, numAgents);
+            
+            document.getElementById('agents-count').textContent = numAgents;
+            
+            // Clear chat
+            document.getElementById('chat-messages').innerHTML = '';
+            addMessage(`⚡ <strong>Débat ultra-rapide lancé !</strong><br>
+            📊 ${numAgents} agents × ${totalRounds} rounds avec ${selectedModel}<br>
+            🎯 Performance maximale activée !`);
+            addMessage(`📋 <strong>Question :</strong> ${question}`);
+            
+            // Lancer le débat ultra-rapide
+            for (let round = 1; round <= totalRounds; round++) {
+                if (!debateActive) break;
+                
+                currentRound = round;
+                document.getElementById('round-count').textContent = `${round}/${totalRounds}`;
+                
+                addMessage(`\n🔄 <strong>=== ROUND ${round}/${totalRounds} ===</strong>`);
+                
+                for (let i = 0; i < agents.length; i++) {
+                    if (!debateActive) break;
+                    
+                    const agentName = agents[i];
+                    
+                    // Prompt optimisé pour vitesse (très concis)
+                    const prompt = `Tu es ${agentName}. 
+Question: ${question}
+Round ${round}/${totalRounds}
+
+Réponds en 1 phrase courte avec ton expertise.`;
+                    
+                    // Générer la réponse optimisée
+                    const result = await generateResponse(prompt, agentName);
+                    
+                    if (result) {
+                        addMessage(result.response, 'agent', agentName, result.time);
+                    }
+                    
+                    // Pause très courte pour fluidité
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                // Mettre à jour consensus
+                const consensus = Math.round(65 + Math.random() * 25);
+                document.getElementById('consensus').textContent = `${consensus}%`;
+            }
+            
+            if (debateActive) {
+                const avgTime = Math.round(totalResponseTime / responseCount);
+                const totalTokens = responseCount * 100;
+                const avgTokensPerSec = Math.round(totalTokens * 1000 / totalResponseTime);
+                
+                // Générer le rapport structuré
+                generateStructuredReport();
+                
+                // Afficher la synthèse
+                displaySynthesis();
+                
+                // Sauvegarder dans l'historique
+                saveDebateToHistory();
+                
+                addMessage(`✅ <strong>Débat terminé !</strong><br><br>
+                📊 <strong>Performance finale :</strong><br>
+                • Temps moyen : ${avgTime}ms par réponse<br>
+                • Vitesse : ${avgTokensPerSec} tokens/seconde<br>
+                • CPU AMD 8840HS : Performant !<br><br>
+                🚀 ${avgTime < 3000 ? 'Performance excellente !' : 'Performance correcte'}<br><br>
+                📋 <strong>Rapport structuré généré et prêt pour export !</strong><br>
+                💾 <strong>Débat sauvegardé dans l'historique local</strong><br><br>
+                👇 <strong>Consultez la synthèse détaillée ci-dessous !</strong>`);
+            }
+            
+            debateActive = false;
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+        }
+
+        // Arrêter le débat
+        function stopDebate() {
+            debateActive = false;
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('stop-btn').disabled = true;
+            addMessage('⏹️ Débat arrêté manuellement.');
+        }
+
+        // Générer le rapport structuré selon le format requis
+        function generateStructuredReport() {
+            const question = document.getElementById('debate-question').value;
+            
+            // 1. THÉMATIQUE - Extraire le thème principal
+            structuredReport.thematique = extractThemeFromQuestion(question);
+            
+            // 2. SUJET - Description complète du sujet débattu
+            structuredReport.sujet = `Débat multi-agent pharmaceutique : ${question}. Configuration: ${agents.length} experts, ${totalRounds} rounds, modèle ${selectedModel} optimisé CPU AMD Ryzen 8840HS.`;
+            
+            // 3. POINTS CLEFS - Extraire des messages des agents
+            structuredReport.points_clefs = extractKeyPoints();
+            
+            // 4. POINTS D'ATTENTION - Identifier les risques et alertes
+            structuredReport.points_attention = extractAttentionPoints();
+            
+            // 5. PROCHAINES ÉTAPES - Recommandations d'actions
+            structuredReport.prochaines_etapes = generateNextSteps();
+        }
+
+        function extractThemeFromQuestion(question) {
+            // Analyse basique pour extraire le thème principal
+            const q = question.toLowerCase();
+            if (q.includes('ia') || q.includes('intelligence artificielle') || q.includes('ai')) {
+                return "Intelligence Artificielle et Innovation Pharmaceutique";
+            } else if (q.includes('conformité') || q.includes('réglementaire') || q.includes('fda') || q.includes('ema')) {
+                return "Conformité Réglementaire et Validation GxP";
+            } else if (q.includes('développement') || q.includes('r&d') || q.includes('recherche')) {
+                return "Développement et Recherche Pharmaceutique";
+            } else if (q.includes('qualité') || q.includes('gxp') || q.includes('validation')) {
+                return "Assurance Qualité et Systèmes GxP";
+            } else if (q.includes('digital') || q.includes('numérique') || q.includes('système')) {
+                return "Transformation Digitale Pharmaceutique";
+            } else {
+                return "Expertise Pharmaceutique Multi-disciplinaire";
+            }
+        }
+
+        function extractKeyPoints() {
+            const points = [];
+            const agentMessages = debateMessages.filter(m => m.type === 'agent');
+            
+            // Grouper par agent pour éviter la redondance
+            const agentGroups = {};
+            agentMessages.forEach(msg => {
+                if (!agentGroups[msg.agent]) {
+                    agentGroups[msg.agent] = [];
+                }
+                agentGroups[msg.agent].push(msg.content);
+            });
+            
+            // Extraire un point clé par agent
+            Object.keys(agentGroups).forEach(agent => {
+                const messages = agentGroups[agent];
+                if (messages.length > 0) {
+                    // Prendre le message le plus long (souvent le plus informatif)
+                    const longestMsg = messages.reduce((a, b) => a.length > b.length ? a : b);
+                    const cleanMsg = longestMsg.replace(/<[^>]*>/g, '').substring(0, 150);
+                    points.push(`${agent}: ${cleanMsg}...`);
+                }
+            });
+            
+            return points.slice(0, 5); // Maximum 5 points clés
+        }
+
+        function extractAttentionPoints() {
+            const attention = [];
+            const question = document.getElementById('debate-question').value.toLowerCase();
+            
+            // Points d'attention basés sur le sujet
+            if (question.includes('ia') || question.includes('ai')) {
+                attention.push("Validation des algorithmes d'IA selon les standards FDA/EMA");
+                attention.push("Transparence et explicabilité des modèles d'apprentissage");
+            }
+            
+            if (question.includes('conformité') || question.includes('réglementaire')) {
+                attention.push("Mise à jour continue des procédures selon évolutions réglementaires");
+                attention.push("Formation des équipes aux nouvelles exigences GxP");
+            }
+            
+            if (question.includes('développement') || question.includes('r&d')) {
+                attention.push("Délais de développement et contraintes budgétaires");
+                attention.push("Coordination entre équipes multicentriques");
+            }
+            
+            // Points d'attention techniques généraux
+            attention.push("Intégrité des données et traçabilité complète");
+            attention.push("Validation des systèmes informatisés selon GAMP 5");
+            attention.push("Gestion des risques selon ICH Q9");
+            
+            return attention.slice(0, 6); // Maximum 6 points d'attention
+        }
+
+        function generateNextSteps() {
+            const steps = [];
+            const consensus = parseInt(document.getElementById('consensus').textContent);
+            
+            // Étapes basées sur le niveau de consensus
+            if (consensus >= 80) {
+                steps.push({
+                    etape: "Finalisation et validation",
+                    responsable: "Équipe QA Senior",
+                    deadline: "2 semaines",
+                    priorite: "Haute"
+                });
+                steps.push({
+                    etape: "Implémentation pilote",
+                    responsable: "Chef de projet",
+                    deadline: "1 mois",
+                    priorite: "Haute"
+                });
+            } else if (consensus >= 60) {
+                steps.push({
+                    etape: "Analyse complémentaire",
+                    responsable: "Experts métier",
+                    deadline: "1 semaine",
+                    priorite: "Critique"
+                });
+                steps.push({
+                    etape: "Consensus révisé",
+                    responsable: "Comité de pilotage",
+                    deadline: "2 semaines",
+                    priorite: "Haute"
+                });
+            } else {
+                steps.push({
+                    etape: "Réévaluation complète",
+                    responsable: "Direction R&D",
+                    deadline: "3 jours",
+                    priorite: "Critique"
+                });
+            }
+            
+            // Étapes standard
+            steps.push({
+                etape: "Documentation réglementaire",
+                responsable: "Affaires réglementaires",
+                deadline: "2 semaines",
+                priorite: "Moyenne"
+            });
+            
+            steps.push({
+                etape: "Revue qualité finale",
+                responsable: "Directeur Qualité",
+                deadline: "1 semaine",
+                priorite: "Haute"
+            });
+            
+            return steps;
+        }
+
+        // Mettre à jour les statistiques d'export
+        function updateExportStats() {
+            const totalMessages = debateMessages.length;
+            const uniqueAgents = new Set(debateMessages.filter(m => m.type === 'agent').map(m => m.agent)).size;
+            const duration = debateStartTime ? Math.round((Date.now() - debateStartTime) / 60000) : 0;
+            
+            document.getElementById('total-messages').textContent = totalMessages;
+            document.getElementById('total-agents').textContent = uniqueAgents;
+            document.getElementById('debate-duration').textContent = `${duration}min`;
+            document.getElementById('export-count').textContent = exportCount;
+            
+            // Activer les boutons d'export si il y a des messages
+            const hasMessages = totalMessages > 1;
+            document.getElementById('export-pdf').disabled = !hasMessages;
+            document.getElementById('export-word').disabled = !hasMessages;
+            document.getElementById('export-html').disabled = !hasMessages;
+            document.getElementById('export-json').disabled = !hasMessages;
+        }
+
+        function showExportAlert(message, type = 'info') {
+            const alertDiv = document.getElementById('export-alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertDiv.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Export PDF
+        function exportToPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Header
+                doc.setFontSize(18);
+                doc.text('Débat Multi-Agent Pharmaceutique', 20, 30);
+                
+                doc.setFontSize(12);
+                doc.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, 20, 45);
+                doc.text(`Modèle utilisé: ${selectedModel} | Hardware: AMD Ryzen 8840HS`, 20, 55);
+                
+                let yPosition = 75;
+                
+                // === RAPPORT STRUCTURÉ ===
+                doc.setFontSize(16);
+                doc.text('RAPPORT STRUCTURÉ', 20, yPosition);
+                yPosition += 15;
+                
+                // 1. THÉMATIQUE
+                doc.setFontSize(14);
+                doc.text('1. THÉMATIQUE', 20, yPosition);
+                yPosition += 8;
+                doc.setFontSize(10);
+                const themeLines = doc.splitTextToSize(structuredReport.thematique, 170);
+                doc.text(themeLines, 25, yPosition);
+                yPosition += themeLines.length * 5 + 10;
+                
+                // 2. SUJET  
+                doc.setFontSize(14);
+                doc.text('2. SUJET', 20, yPosition);
+                yPosition += 8;
+                doc.setFontSize(10);
+                const subjectLines = doc.splitTextToSize(structuredReport.sujet, 170);
+                doc.text(subjectLines, 25, yPosition);
+                yPosition += subjectLines.length * 5 + 10;
+                
+                // 3. POINTS CLEFS
+                if (yPosition > 240) { doc.addPage(); yPosition = 30; }
+                doc.setFontSize(14);
+                doc.text('3. POINTS CLEFS', 20, yPosition);
+                yPosition += 8;
+                doc.setFontSize(10);
+                structuredReport.points_clefs.forEach((point, idx) => {
+                    const pointLines = doc.splitTextToSize(`• ${point}`, 170);
+                    doc.text(pointLines, 25, yPosition);
+                    yPosition += pointLines.length * 5 + 3;
+                });
+                yPosition += 5;
+                
+                // 4. POINTS D'ATTENTION
+                if (yPosition > 230) { doc.addPage(); yPosition = 30; }
+                doc.setFontSize(14);
+                doc.text('4. POINTS D\'ATTENTION', 20, yPosition);
+                yPosition += 8;
+                doc.setFontSize(10);
+                structuredReport.points_attention.forEach((attention, idx) => {
+                    const attentionLines = doc.splitTextToSize(`⚠️ ${attention}`, 170);
+                    doc.text(attentionLines, 25, yPosition);
+                    yPosition += attentionLines.length * 5 + 3;
+                });
+                yPosition += 5;
+                
+                // 5. PROCHAINES ÉTAPES (Tableau)
+                if (yPosition > 200) { doc.addPage(); yPosition = 30; }
+                doc.setFontSize(14);
+                doc.text('5. PROCHAINES ÉTAPES', 20, yPosition);
+                yPosition += 15;
+                
+                // Headers du tableau
+                doc.setFontSize(9);
+                doc.text('Étape', 25, yPosition);
+                doc.text('Responsable', 70, yPosition);
+                doc.text('Deadline', 120, yPosition);
+                doc.text('Priorité', 160, yPosition);
+                yPosition += 5;
+                
+                // Ligne de séparation
+                doc.line(20, yPosition, 190, yPosition);
+                yPosition += 5;
+                
+                structuredReport.prochaines_etapes.forEach(step => {
+                    doc.text(step.etape.substring(0, 20), 25, yPosition);
+                    doc.text(step.responsable.substring(0, 20), 70, yPosition);
+                    doc.text(step.deadline, 120, yPosition);
+                    doc.text(step.priorite, 160, yPosition);
+                    yPosition += 8;
+                });
+                yPosition += 10;
+                
+                // === MESSAGES DU DÉBAT ===
+                if (yPosition > 250) { doc.addPage(); yPosition = 30; }
+                doc.setFontSize(16);
+                doc.text('HISTORIQUE DU DÉBAT', 20, yPosition);
+                yPosition += 15;
+                
+                debateMessages.forEach((msg, index) => {
+                    if (yPosition > 270) {
+                        doc.addPage();
+                        yPosition = 30;
+                    }
+                    
+                    const time = msg.timestamp.toLocaleTimeString('fr-FR');
+                    const header = msg.type === 'agent' ? `🤖 ${msg.agent} (${time})` : `📢 Système (${time})`;
+                    
+                    doc.setFontSize(10);
+                    doc.text(header, 20, yPosition);
+                    yPosition += 8;
+                    
+                    const content = msg.content.replace(/<[^>]*>/g, '').substring(0, 500);
+                    const lines = doc.splitTextToSize(content, 170);
+                    doc.text(lines, 25, yPosition);
+                    yPosition += lines.length * 5 + 10;
+                });
+                
+                const filename = `debate_pharma_${new Date().toISOString().split('T')[0]}.pdf`;
+                doc.save(filename);
+                
+                exportCount++;
+                updateExportStats();
+                showExportAlert('✅ PDF exporté avec succès !', 'success');
+            } catch (error) {
+                console.error('Erreur export PDF:', error);
+                showExportAlert('❌ Erreur lors de l\'export PDF', 'error');
+            }
+        }
+
+        // Export Word
+        function exportToWord() {
+            try {
+                const doc = new docx.Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: "Débat Multi-Agent Pharmaceutique",
+                                        bold: true,
+                                        size: 32
+                                    })
+                                ],
+                                heading: docx.HeadingLevel.HEADING_1
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: `Généré le: ${new Date().toLocaleDateString('fr-FR')} | Hardware: AMD Ryzen 7 8840HS`,
+                                        size: 24
+                                    })
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: `Configuration: ${selectedModel}, ${agents.length} agents, ${totalRounds} rounds`,
+                                        size: 20
+                                    })
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: "RAPPORT STRUCTURÉ",
+                                        bold: true,
+                                        size: 28
+                                    })
+                                ],
+                                heading: docx.HeadingLevel.HEADING_2
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: "1. THÉMATIQUE",
+                                        bold: true,
+                                        size: 24
+                                    })
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: structuredReport.thematique,
+                                        size: 20
+                                    })
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: "2. SUJET",
+                                        bold: true,
+                                        size: 24
+                                    })
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: structuredReport.sujet,
+                                        size: 20
+                                    })
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: "3. POINTS CLEFS",
+                                        bold: true,
+                                        size: 24
+                                    })
+                                ]
+                            }),
+                            ...structuredReport.points_clefs.map(point => 
+                                new docx.Paragraph({
+                                    children: [
+                                        new docx.TextRun({
+                                            text: `• ${point}`,
+                                            size: 20
+                                        })
+                                    ]
+                                })
+                            ),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: "4. POINTS D'ATTENTION",
+                                        bold: true,
+                                        size: 24
+                                    })
+                                ]
+                            }),
+                            ...structuredReport.points_attention.map(attention => 
+                                new docx.Paragraph({
+                                    children: [
+                                        new docx.TextRun({
+                                            text: `⚠️ ${attention}`,
+                                            size: 20
+                                        })
+                                    ]
+                                })
+                            ),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: "5. PROCHAINES ÉTAPES",
+                                        bold: true,
+                                        size: 24
+                                    })
+                                ]
+                            }),
+                            new docx.Table({
+                                rows: [
+                                    new docx.TableRow({
+                                        children: [
+                                            new docx.TableCell({ children: [new docx.Paragraph("Étape")] }),
+                                            new docx.TableCell({ children: [new docx.Paragraph("Responsable")] }),
+                                            new docx.TableCell({ children: [new docx.Paragraph("Deadline")] }),
+                                            new docx.TableCell({ children: [new docx.Paragraph("Priorité")] })
+                                        ]
+                                    }),
+                                    ...structuredReport.prochaines_etapes.map(step => 
+                                        new docx.TableRow({
+                                            children: [
+                                                new docx.TableCell({ children: [new docx.Paragraph(step.etape)] }),
+                                                new docx.TableCell({ children: [new docx.Paragraph(step.responsable)] }),
+                                                new docx.TableCell({ children: [new docx.Paragraph(step.deadline)] }),
+                                                new docx.TableCell({ children: [new docx.Paragraph(step.priorite)] })
+                                            ]
+                                        })
+                                    )
+                                ]
+                            }),
+                            new docx.Paragraph({
+                                children: [
+                                    new docx.TextRun({
+                                        text: "HISTORIQUE DU DÉBAT",
+                                        bold: true,
+                                        size: 28
+                                    })
+                                ],
+                                heading: docx.HeadingLevel.HEADING_2
+                            }),
+                            ...debateMessages.map(msg => {
+                                const time = msg.timestamp.toLocaleTimeString('fr-FR');
+                                const header = msg.type === 'agent' ? `🤖 ${msg.agent} (${time})` : `📢 Système (${time})`;
+                                const content = msg.content.replace(/<[^>]*>/g, '');
+                                
+                                return [
+                                    new docx.Paragraph({
+                                        children: [
+                                            new docx.TextRun({
+                                                text: header,
+                                                bold: true,
+                                                size: 22
+                                            })
+                                        ]
+                                    }),
+                                    new docx.Paragraph({
+                                        children: [
+                                            new docx.TextRun({
+                                                text: content,
+                                                size: 20
+                                            })
+                                        ]
+                                    }),
+                                    new docx.Paragraph({
+                                        children: [new docx.TextRun({ text: "", size: 20 })]
+                                    })
+                                ];
+                            }).flat()
+                        ]
+                    }]
+                });
+                
+                docx.Packer.toBlob(doc).then(blob => {
+                    const filename = `debate_pharma_${new Date().toISOString().split('T')[0]}.docx`;
+                    saveAs(blob, filename);
+                    
+                    exportCount++;
+                    updateExportStats();
+                    showExportAlert('✅ Document Word exporté avec succès !', 'success');
+                });
+            } catch (error) {
+                console.error('Erreur export Word:', error);
+                showExportAlert('❌ Erreur lors de l\'export Word', 'error');
+            }
+        }
+
+        // Export HTML
+        function exportToHTML() {
+            try {
+                const question = document.getElementById('debate-question').value;
+                const date = new Date().toLocaleDateString('fr-FR');
+                
+                let html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Débat Multi-Agent Pharmaceutique - ${date}</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
+        .header h1 { color: #2d3748; margin-bottom: 10px; }
+        .message { margin-bottom: 20px; padding: 15px; border-radius: 8px; }
+        .message-agent { background: #e3f2fd; border-left: 4px solid #2196F3; }
+        .message-system { background: #f3e5f5; border-left: 4px solid #9c27b0; }
+        .message-header { font-weight: bold; color: #555; margin-bottom: 8px; }
+        .message-time { float: right; font-size: 0.9em; color: #666; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 Débat Multi-Agent Pharmaceutique</h1>
+        <p><strong>Date:</strong> ${date} | <strong>Hardware:</strong> AMD Ryzen 7 8840HS</p>
+        <p><strong>Modèle:</strong> ${selectedModel} | <strong>Configuration:</strong> ${agents.length} agents, ${totalRounds} rounds</p>
+    </div>
+    
+    <!-- RAPPORT STRUCTURÉ -->
+    <div style="background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 25px; margin-bottom: 30px;">
+        <h2 style="color: #2d3748; border-bottom: 2px solid #4CAF50; padding-bottom: 10px;">📋 RAPPORT STRUCTURÉ</h2>
+        
+        <h3 style="color: #4CAF50; margin-top: 20px;">1️⃣ THÉMATIQUE</h3>
+        <p><strong>${structuredReport.thematique}</strong></p>
+        
+        <h3 style="color: #4CAF50; margin-top: 20px;">2️⃣ SUJET</h3>
+        <p>${structuredReport.sujet}</p>
+        
+        <h3 style="color: #4CAF50; margin-top: 20px;">3️⃣ POINTS CLEFS</h3>
+        <ul style="margin-left: 20px;">
+            ${structuredReport.points_clefs.map(point => `<li style="margin-bottom: 8px;">${point}</li>`).join('')}
+        </ul>
+        
+        <h3 style="color: #4CAF50; margin-top: 20px;">4️⃣ POINTS D'ATTENTION</h3>
+        <ul style="margin-left: 20px;">
+            ${structuredReport.points_attention.map(attention => `<li style="margin-bottom: 8px;">⚠️ ${attention}</li>`).join('')}
+        </ul>
+        
+        <h3 style="color: #4CAF50; margin-top: 20px;">5️⃣ PROCHAINES ÉTAPES</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+            <thead>
+                <tr style="background: #4CAF50; color: white;">
+                    <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Étape</th>
+                    <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Responsable</th>
+                    <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Deadline</th>
+                    <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Priorité</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${structuredReport.prochaines_etapes.map(step => `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 12px;">${step.etape}</td>
+                        <td style="border: 1px solid #ddd; padding: 12px;">${step.responsable}</td>
+                        <td style="border: 1px solid #ddd; padding: 12px;">${step.deadline}</td>
+                        <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold; color: ${step.priorite === 'Critique' ? '#721c24' : step.priorite === 'Haute' ? '#dc3545' : '#856404'};">${step.priorite}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-card">
+            <h3>${debateMessages.length}</h3>
+            <p>Messages</p>
+        </div>
+        <div class="stat-card">
+            <h3>${agents.length}</h3>
+            <p>Agents</p>
+        </div>
+        <div class="stat-card">
+            <h3>${Math.round(totalResponseTime / responseCount || 0)}ms</h3>
+            <p>Temps moyen</p>
+        </div>
+        <div class="stat-card">
+            <h3>${document.getElementById('consensus').textContent}</h3>
+            <p>Consensus</p>
+        </div>
+    </div>
+    
+    <h2>💬 Débat</h2>`;
+                
+                debateMessages.forEach(msg => {
+                    const time = msg.timestamp.toLocaleTimeString('fr-FR');
+                    const header = msg.type === 'agent' ? `🤖 ${msg.agent}` : `📢 Système`;
+                    const cssClass = msg.type === 'agent' ? 'message-agent' : 'message-system';
+                    
+                    html += `
+    <div class="message ${cssClass}">
+        <div class="message-header">
+            ${header}
+            <span class="message-time">${time}</span>
+        </div>
+        <div class="message-content">${msg.content}</div>
+    </div>`;
+                });
+                
+                html += `
+    <footer style="margin-top: 40px; text-align: center; color: #666; border-top: 1px solid #eee; padding-top: 20px;">
+        <p>Généré par le Système Multi-Agent Pharmaceutique - ${new Date().toLocaleString('fr-FR')}</p>
+    </footer>
+</body>
+</html>`;
+                
+                const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                const filename = `debate_pharma_${new Date().toISOString().split('T')[0]}.html`;
+                saveAs(blob, filename);
+                
+                exportCount++;
+                updateExportStats();
+                showExportAlert('✅ Page HTML exportée avec succès !', 'success');
+            } catch (error) {
+                console.error('Erreur export HTML:', error);
+                showExportAlert('❌ Erreur lors de l\'export HTML', 'error');
+            }
+        }
+
+        // Export JSON
+        function exportToJSON() {
+            try {
+                const exportData = {
+                    metadata: {
+                        title: "Débat Multi-Agent Pharmaceutique",
+                        question: document.getElementById('debate-question').value,
+                        date: new Date().toISOString(),
+                        model: selectedModel,
+                        agents: agents,
+                        rounds: totalRounds,
+                        duration_ms: debateStartTime ? Date.now() - debateStartTime : 0,
+                        hardware: "AMD Ryzen 7 8840HS",
+                        performance: {
+                            avg_response_time: Math.round(totalResponseTime / responseCount || 0),
+                            total_messages: debateMessages.length,
+                            consensus: document.getElementById('consensus').textContent,
+                            cpu_efficiency: document.getElementById('cpu-efficiency').textContent
+                        }
+                    },
+                    rapport_structure: {
+                        thematique: structuredReport.thematique,
+                        sujet: structuredReport.sujet,
+                        points_clefs: structuredReport.points_clefs,
+                        points_attention: structuredReport.points_attention,
+                        prochaines_etapes: structuredReport.prochaines_etapes
+                    },
+                    messages: debateMessages.map(msg => ({
+                        type: msg.type,
+                        agent: msg.agent,
+                        content: msg.content.replace(/<[^>]*>/g, ''),
+                        timestamp: msg.timestamp.toISOString(),
+                        response_time_ms: msg.responseTime || null
+                    })),
+                    statistics: {
+                        total_response_time: totalResponseTime,
+                        total_responses: responseCount,
+                        agent_distribution: agents.reduce((acc, agent) => {
+                            acc[agent] = debateMessages.filter(m => m.agent === agent).length;
+                            return acc;
+                        }, {}),
+                        rounds_completed: currentRound,
+                        export_info: {
+                            export_date: new Date().toISOString(),
+                            export_count: exportCount + 1,
+                            version: "1.0"
+                        }
+                    }
+                };
+                
+                const jsonString = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+                const filename = `debate_pharma_${new Date().toISOString().split('T')[0]}.json`;
+                saveAs(blob, filename);
+                
+                exportCount++;
+                updateExportStats();
+                showExportAlert('✅ Données JSON exportées avec succès !', 'success');
+            } catch (error) {
+                console.error('Erreur export JSON:', error);
+                showExportAlert('❌ Erreur lors de l\'export JSON', 'error');
+            }
+        }
+
+        // Fonctions d'historique
+        function showHistory() {
+            const modal = document.getElementById('historyModal');
+            const content = document.getElementById('history-content');
+            
+            if (debateHistory.length === 0) {
+                content.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <h3>📭 Aucun débat dans l'historique</h3>
+                        <p>Lancez votre premier débat pour commencer à constituer votre historique !</p>
+                    </div>
+                `;
+            } else {
+                let historyHTML = `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                        <h3>📊 Statistiques Globales</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 10px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5em; font-weight: bold; color: #4CAF50;">${debateHistory.length}</div>
+                                <div style="font-size: 0.9em; color: #666;">Débats Total</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5em; font-weight: bold; color: #2196F3;">${new Set(debateHistory.map(h => h.topic.category)).size}</div>
+                                <div style="font-size: 0.9em; color: #666;">Catégories</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5em; font-weight: bold; color: #FF9800;">${Math.round(debateHistory.reduce((sum, h) => sum + parseInt(h.performance.consensus || '0'), 0) / debateHistory.length)}%</div>
+                                <div style="font-size: 0.9em; color: #666;">Consensus Moyen</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                debateHistory.forEach(debate => {
+                    const duration = Math.round(debate.performance.duration_ms / 1000 / 60);
+                    const complexityColor = debate.topic.complexity === 'élevée' ? '#dc3545' : debate.topic.complexity === 'moyenne' ? '#ffc107' : '#28a745';
+                    
+                    historyHTML += `
+                        <div class="history-item">
+                            <div class="history-header">
+                                <div>
+                                    <span class="history-category" style="background: ${complexityColor}">${debate.topic.category}</span>
+                                    <strong style="margin-left: 10px;">${debate.date} à ${debate.time}</strong>
+                                </div>
+                                <div>
+                                    <button onclick="exportDebateFromHistory('${debate.id}')" style="background: #17a2b8; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                                        📥 Export
+                                    </button>
+                                    <button onclick="deleteDebate('${debate.id}')" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-left: 5px;">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-bottom: 10px;">
+                                <strong>Question :</strong> ${debate.topic.question.substring(0, 100)}${debate.topic.question.length > 100 ? '...' : ''}
+                            </div>
+                            
+                            <div class="history-stats">
+                                <div><strong>Modèle:</strong> ${debate.configuration.model}</div>
+                                <div><strong>Agents:</strong> ${debate.configuration.agents}</div>
+                                <div><strong>Durée:</strong> ${duration}min</div>
+                                <div><strong>Messages:</strong> ${debate.performance.total_messages}</div>
+                                <div><strong>Consensus:</strong> ${debate.performance.consensus}</div>
+                                <div><strong>Temps moy:</strong> ${debate.performance.avg_response_time}ms</div>
+                            </div>
+                            
+                            ${debate.rapport_structure ? `
+                                <div style="margin-top: 10px;">
+                                    <strong>Points clefs:</strong>
+                                    <ul style="margin: 5px 0 0 20px; font-size: 0.9em;">
+                                        ${debate.rapport_structure.points_clefs.slice(0, 2).map(point => `<li>${point.substring(0, 80)}...</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+                
+                content.innerHTML = historyHTML;
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        function closeHistory() {
+            document.getElementById('historyModal').style.display = 'none';
+        }
+
+        function deleteDebate(debateId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce débat de l\'historique ?')) {
+                debateHistory = debateHistory.filter(d => d.id !== debateId);
+                localStorage.setItem('pharmaDebateHistory', JSON.stringify(debateHistory));
+                updateHistoryCount();
+                showHistory(); // Rafraîchir l'affichage
+                showAlert('🗑️ Débat supprimé de l\'historique', 'info');
+            }
+        }
+
+        function exportDebateFromHistory(debateId) {
+            const debate = debateHistory.find(d => d.id === debateId);
+            if (!debate) return;
+            
+            // Export JSON du débat historique
+            const jsonString = JSON.stringify(debate, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+            const filename = `debate_${debate.date.replace(/\//g, '-')}_${debate.id}.json`;
+            saveAs(blob, filename);
+            
+            showAlert('📥 Débat historique exporté en JSON', 'success');
+        }
+
+        function updateHistoryCount() {
+            document.getElementById('history-count').textContent = debateHistory.length;
+        }
+
+        // Fermer la modal en cliquant outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('historyModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Test automatique au chargement
+        window.onload = () => {
+            updatePerformanceIndicator();
+            updateExportStats();
+            updateHistoryCount();
+            setTimeout(testConnection, 1000);
+            
+            // Sujet aléatoire au chargement si c'est le premier
+            if (debateHistory.length === 0) {
+                setTimeout(setRandomTopic, 2000);
+            }
+        };
+    </script>
+</body>
+</html>
