@@ -4,6 +4,7 @@
 [![Ollama](https://img.shields.io/badge/Ollama-Compatible-green.svg)](https://ollama.com/)
 [![HTML5](https://img.shields.io/badge/Frontend-HTML5-orange.svg)](https://html.spec.whatwg.org/)
 [![AMD Optimized](https://img.shields.io/badge/AMD-Ryzen%208840HS-red.svg)](https://www.amd.com/)
+[![YouTube Demo](https://img.shields.io/badge/🎬%20Demo-YouTube-red.svg)](https://youtu.be/k0QaRFLe5LI)
 
 ## 📋 Description
 
@@ -378,6 +379,7 @@ BACKEND_PORT=8001
 
 ## 📚 Documentation Complète
 
+- 🎬 **[Démonstration YouTube](https://youtu.be/k0QaRFLe5LI)** - Présentation complète du système
 - [Architecture Détaillée](ARCHITECTURE_FINALE_DEBAT_VISIBLE.md)
 - [Guide Ollama](DEMARRAGE_RAPIDE_OLLAMA.md)  
 - [Système de Logging](GUIDE_ULTIMATE_LOGGING_2025.md)
