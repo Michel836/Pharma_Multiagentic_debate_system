@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏥 Débat Pharmaceutique - VERSION FINALE</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; 
+            padding: 20px; 
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1976d2, #42a5f5);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .status {
+            background: #f8f9fa;
+            padding: 15px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+        }
+        .indicator.ok { background: #28a745; }
+        .controls {
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+        }
+        button {
+            padding: 15px 25px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-test { background: #28a745; color: white; }
+        .btn-debate { background: #007bff; color: white; }
+        .btn-clear { background: #6c757d; color: white; }
+        button:hover:not(:disabled) { transform: translateY(-2px); opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .output {
+            padding: 20px;
+            min-height: 500px;
+            background: #f8f9fa;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+        .message.system { border-left-color: #28a745; }
+        .message.expert { border-left-color: #17a2b8; }
+        .message.error { border-left-color: #dc3545; }
+        .timestamp { color: #6c757d; font-size: 12px; }
+        .author { font-weight: bold; color: #007bff; }
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Débat Pharmaceutique qwen3:4b</h1>
+            <p><strong>VERSION FINALE</strong> - Proxy intégré, CORS résolu</p>
+        </div>
+        
+        <div class="status">
+            <div class="status-item">
+                <div class="indicator" id="server-indicator"></div>
+                <span>Serveur: <span id="server-status">Démarrage...</span></span>
+            </div>
+            <div class="status-item">
+                <div class="indicator" id="ollama-indicator"></div>
+                <span>Ollama: <span id="ollama-status">Test...</span></span>
+            </div>
+            <div class="status-item">
+                <div class="indicator" id="model-indicator"></div>
+                <span>Modèle: <span id="model-status">qwen3:4b</span></span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn-test" onclick="testConnection()" id="testBtn">
+                🔍 Test Complet
+            </button>
+            <button class="btn-debate" onclick="startDebate()" id="debateBtn">
+                🚀 Débat Multiagent
+            </button>
+            <button class="btn-clear" onclick="clearOutput()">
+                🗑️ Effacer
+            </button>
+        </div>
+        
+        <div class="output" id="output">
+            <div class="message system">
+                <span class="author">SYSTÈME FINAL</span> - 
+                <span class="timestamp" id="loadTime"></span><br>
+                Interface avec proxy intégré chargée. Test automatique en cours...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let isDebating = false;
+        
+        // Afficher l'heure de chargement
+        document.getElementById('loadTime').textContent = new Date().toLocaleTimeString();
+        
+        // Mettre à jour les indicateurs de statut
+        function updateStatus(type, status, text) {
+            document.getElementById(`${type}-indicator`).className = `indicator ${status}`;
+            document.getElementById(`${type}-status`).textContent = text;
+        }
+        
+        function addMessage(type, author, text, timestamp = null) {
+            const output = document.getElementById('output');
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            
+            const time = timestamp || new Date().toLocaleTimeString();
+            div.innerHTML = `
+                <span class="author">${author}</span> - 
+                <span class="timestamp">${time}</span><br>
+                ${text}
+            `;
+            
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function clearOutput() {
+            document.getElementById('output').innerHTML = `
+                <div class="message system">
+                    <span class="author">SYSTÈME</span> - 
+                    <span class="timestamp">${new Date().toLocaleTimeString()}</span><br>
+                    Interface nettoyée. Prêt pour nouveaux tests.
+                </div>
+            `;
+        }
+        
+        async function testConnection() {
+            const btn = document.getElementById('testBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Test en cours...';
+            
+            updateStatus('server', 'ok', 'Actif');
+            addMessage('system', 'TEST PROXY', 'Démarrage test via proxy intégré /ollama/api/*');
+            
+            try {
+                // Test 1: Tags via proxy
+                addMessage('system', 'ÉTAPE 1', 'Test /ollama/api/tags (via proxy serveur)');
+                
+                const response1 = await fetch('/ollama/api/tags', {
+                    method: 'GET'
+                });
+                
+                addMessage('system', 'PROXY', `Status: ${response1.status} ${response1.statusText}`);
+                
+                if (response1.ok) {
+                    const data = await response1.json();
+                    const models = data.models.map(m => m.name).join(', ');
+                    addMessage('system', 'MODÈLES', `Disponibles: ${models}`);
+                    updateStatus('ollama', 'ok', 'Connecté');
+                    
+                    if (models.includes('qwen3:4b')) {
+                        updateStatus('model', 'ok', 'Disponible');
+                        
+                        // Test 2: Génération
+                        addMessage('system', 'ÉTAPE 2', 'Test génération via proxy...');
+                        
+                        const response2 = await fetch('/ollama/api/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                model: 'qwen3:4b',
+                                prompt: 'Réponds exactement "PROXY FONCTIONNE" en 2 mots',
+                                stream: false,
+                                options: { temperature: 0.1, num_predict: 5 }
+                            })
+                        });
+                        
+                        if (response2.ok) {
+                            const genData = await response2.json();
+                            addMessage('system', 'qwen3:4b', `"${genData.response.trim()}"`);
+                            addMessage('system', '✅ SUCCÈS TOTAL', 'Proxy + Ollama + qwen3:4b = 100% fonctionnel!');
+                        } else {
+                            addMessage('error', '❌ GÉNÉRATION', `Erreur: ${response2.status}`);
+                        }
+                    } else {
+                        addMessage('error', '❌ MODÈLE', 'qwen3:4b non trouvé');
+                        updateStatus('model', '', 'Manquant');
+                    }
+                } else {
+                    addMessage('error', '❌ PROXY', `Échec: ${response1.status}`);
+                    updateStatus('ollama', '', 'Erreur');
+                }
+                
+            } catch (error) {
+                addMessage('error', '❌ EXCEPTION', `${error.message}`);
+                updateStatus('ollama', '', 'Inaccessible');
+            }
+            
+            btn.disabled = false;
+            btn.textContent = '🔍 Test Complet';
+        }
+        
+        async function startDebate() {
+            if (isDebating) return;
+            
+            isDebating = true;
+            const btn = document.getElementById('debateBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Débat en cours...';
+            
+            addMessage('system', 'DÉBAT FINAL', '🏥 Lancement débat pharmaceutique multiagent avec proxy');
+            
+            const experts = [
+                { 
+                    name: '🔬 Expert Réglementaire', 
+                    specialty: 'Conformité GxP et réglementations FDA/EMA',
+                    focus: 'audit trail et validation des systèmes'
+                },
+                { 
+                    name: '💊 Expert Clinique', 
+                    specialty: 'Essais cliniques Phase III',
+                    focus: 'intégrité des données et workflows patients'
+                },
+                { 
+                    name: '🔍 Expert Qualité', 
+                    specialty: 'Assurance qualité pharmaceutique',
+                    focus: 'contrôles qualité et sécurité des données'
+                }
+            ];
+            
+            const topic = "Implémentation d'un système de logging GxP pour essais cliniques Phase III avec chiffrement end-to-end, audit trail complet et récupération automatique";
+            addMessage('system', 'SUJET', topic);
+            
+            let responses = [];
+            
+            for (const expert of experts) {
+                try {
+                    addMessage('expert', expert.name, `⏳ Analyse du sujet (${expert.specialty})...`);
+                    
+                    const startTime = Date.now();
+                    const response = await fetch('/ollama/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: 'qwen3:4b',
+                            prompt: `Tu es ${expert.name}, expert en ${expert.specialty}.
+Tu te concentres sur ${expert.focus}.
+
+SUJET: ${topic}
+
+Donne ton avis d'expert en 3-4 phrases courtes et techniques. Sois précis, concret et utilise ton expertise spécifique.
+
+Avis expert:`,
+                            stream: false,
+                            options: {
+                                temperature: 0.3,
+                                top_p: 0.8,
+                                num_predict: 100
+                            }
+                        })
+                    });
+                    
+                    const duration = Date.now() - startTime;
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const opinion = data.response.trim();
+                        addMessage('expert', expert.name, `${opinion}<br><em>⚡ Généré en ${duration}ms</em>`);
+                        responses.push({ expert: expert.name, opinion, duration });
+                    } else {
+                        addMessage('error', expert.name, `❌ Erreur HTTP ${response.status}`);
+                    }
+                    
+                } catch (error) {
+                    addMessage('error', expert.name, `❌ Erreur: ${error.message}`);
+                }
+                
+                // Pause entre experts
+                await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+            
+            // Synthèse finale
+            if (responses.length >= 2) {
+                const avgDuration = responses.reduce((sum, r) => sum + r.duration, 0) / responses.length;
+                addMessage('system', '📊 SYNTHÈSE', `Débat réussi avec ${responses.length}/3 experts. Performance moyenne: ${avgDuration.toFixed(0)}ms par réponse.`);
+                addMessage('system', '🎉 SUCCÈS', 'Débat pharmaceutique multiagent complété avec proxy intégré !');
+            } else {
+                addMessage('system', '⚠️ PARTIEL', 'Débat partiellement réussi, certains experts ont échoué.');
+            }
+            
+            isDebating = false;
+            btn.disabled = false;
+            btn.textContent = '🚀 Débat Multiagent';
+        }
+        
+        // Test automatique au chargement
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                updateStatus('server', 'ok', 'Proxy actif');
+                testConnection(); // Test automatique
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

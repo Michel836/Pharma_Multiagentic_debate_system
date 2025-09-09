@@ -1,0 +1,148 @@
+# Configuration développement pour le système multiagent pharma
+app:
+  name: "Pharma MultiAgent System - Dev"
+  version: "1.0.0-dev"
+  environment: "development"
+  debug: true
+  host: "127.0.0.1"
+  port: 8000
+
+# Configuration des providers LLM
+llm_providers:
+  gemini:
+    enabled: true
+    model: "gemini-1.5-pro"
+    temperature: 0.5
+    max_tokens: 1024
+    timeout: 30
+    retry_attempts: 2
+  
+  ollama:
+    enabled: true
+    host: "http://localhost:11434"
+    models:
+      - "llama3.2:8b"
+      - "mistral:7b"
+    timeout: 45
+    retry_attempts: 2
+
+# Configuration du débat (plus permissive en dev)
+debate:
+  max_rounds: 5
+  consensus_threshold: 0.7
+  timeout_per_round: 120  # 2 minutes
+  require_human_validation: false  # Désactivé pour les tests
+  validation_threshold: 0.6
+  
+  phases:
+    initialization:
+      duration: 10
+    opening_statements:
+      duration: 60
+    argumentation:
+      max_rounds: 3
+      duration_per_round: 90
+    voting:
+      duration: 30
+    synthesis:
+      duration: 60
+
+# Configuration des agents
+agents:
+  expert_pool_size: 2  # Plus petit en dev
+  judge_enabled: true
+  voting_system: "simple"
+  confidence_threshold: 0.5
+  
+  expert:
+    temperature: 0.6
+    max_tokens: 512
+    thinking_time: 2
+  
+  judge:
+    temperature: 0.3
+    max_tokens: 1024
+    analysis_depth: "standard"
+
+# Configuration de la base de données
+database:
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 1  # DB différente pour le dev
+    password: null
+    ssl: false
+    connection_pool_size: 5
+  
+  sqlite:
+    path: "./data/pharma_multiagent_dev.db"
+    pool_size: 5
+    pool_timeout: 10
+
+# Configuration du logging (plus verbose)
+logging:
+  level: "DEBUG"
+  format: "detailed"
+  
+  handlers:
+    console:
+      enabled: true
+      level: "DEBUG"
+      colored: true
+    
+    file:
+      enabled: true
+      path: "./logs/pharma_multiagent_dev.log"
+      level: "DEBUG"
+      rotation_size: "50MB"
+      retention_days: 7
+
+# Configuration de la sécurité (relaxée en dev)
+security:
+  cors:
+    enabled: true
+    allow_origins: ["http://localhost:3000", "http://127.0.0.1:3000"]
+    allow_methods: ["*"]
+    allow_headers: ["*"]
+  
+  rate_limiting:
+    enabled: false  # Désactivé en dev
+  
+  authentication:
+    enabled: false
+
+# Configuration WebSocket
+websocket:
+  max_connections: 100
+  heartbeat_interval: 60
+  message_queue_size: 100
+  compression: false
+
+# Configuration du monitoring
+monitoring:
+  enabled: false  # Simplifié en dev
+  
+  health_checks:
+    enabled: true
+    interval: 60
+    timeout: 5
+
+# Configuration des performances (dev friendly)
+performance:
+  max_workers: 2
+  request_timeout: 120
+  keep_alive_timeout: 30
+  max_request_size: 8388608  # 8MB
+  
+  cache:
+    enabled: false  # Désactivé pour le hot reload
+
+# Configuration du kill switch
+kill_switch:
+  enabled: true
+  triggers:
+    - "manual_intervention"
+  
+  actions:
+    - "stop_all_debates"
+    - "log_state"

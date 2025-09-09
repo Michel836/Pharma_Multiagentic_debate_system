@@ -1,0 +1,53 @@
+# Configuration Ollama - Mode Local Uniquement
+# Système MultiAgent 100% local sans connexion externe
+
+ollama:
+  # URL du serveur Ollama local
+  host: "http://localhost:11434"
+  
+  # Modèle principal pour tous les agents
+  # Options recommandées: llama3.2, mistral:7b, qwen2.5:7b
+  default_model: "llama3.2"
+  
+  # Configuration des agents avec le même modèle
+  agents:
+    expert_1:
+      model: "llama3.2"
+      temperature: 0.3
+      role: "Expert scientifique pharmaceutique"
+      system_prompt: "Tu es un expert en R&D pharmaceutique. Analyse de façon critique et scientifique."
+    
+    expert_2:
+      model: "llama3.2"
+      temperature: 0.5
+      role: "Expert en réglementation"
+      system_prompt: "Tu es un expert en réglementation pharmaceutique et conformité GxP."
+    
+    expert_3:
+      model: "llama3.2"
+      temperature: 0.4
+      role: "Expert en validation"
+      system_prompt: "Tu es un expert en validation et contrôle qualité pharmaceutique."
+    
+    judge:
+      model: "llama3.2"
+      temperature: 0.1
+      role: "Juge arbitre"
+      system_prompt: "Tu es un juge impartial qui évalue les arguments des experts et prend des décisions basées sur les faits."
+
+# Paramètres de performance
+performance:
+  timeout: 60  # Timeout en secondes par requête
+  max_retries: 3
+  batch_size: 1  # Traiter une requête à la fois pour économiser les ressources
+  
+# Paramètres du débat
+debate:
+  max_rounds: 5
+  consensus_threshold: 0.7
+  enable_human_validation: true
+  
+# Logging
+logging:
+  level: "INFO"
+  file: "./logs/ollama_multiagent.log"

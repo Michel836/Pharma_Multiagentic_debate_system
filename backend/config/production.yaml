@@ -1,0 +1,172 @@
+# Configuration production pour le système multiagent pharma
+app:
+  name: "Pharma MultiAgent System"
+  version: "1.0.0"
+  environment: "production"
+  debug: false
+  host: "0.0.0.0"
+  port: 8000
+
+# Configuration des providers LLM
+llm_providers:
+  gemini:
+    enabled: true
+    model: "gemini-1.5-pro"
+    temperature: 0.3
+    max_tokens: 2048
+    timeout: 30
+    retry_attempts: 3
+  
+  ollama:
+    enabled: true
+    host: "http://ollama:11434"
+    models:
+      - "llama3.2:8b"
+      - "mistral:7b" 
+      - "qwen2:7b"
+    timeout: 60
+    retry_attempts: 2
+
+# Configuration du débat
+debate:
+  max_rounds: 10
+  consensus_threshold: 0.8
+  timeout_per_round: 300  # 5 minutes
+  require_human_validation: true
+  validation_threshold: 0.7
+  
+  # Configuration des phases
+  phases:
+    initialization:
+      duration: 30
+    opening_statements:
+      duration: 120
+    argumentation:
+      max_rounds: 8
+      duration_per_round: 180
+    voting:
+      duration: 60
+    synthesis:
+      duration: 120
+
+# Configuration des agents
+agents:
+  expert_pool_size: 3
+  judge_enabled: true
+  voting_system: "weighted"
+  confidence_threshold: 0.6
+  
+  # Configuration par rôle
+  expert:
+    temperature: 0.4
+    max_tokens: 1024
+    thinking_time: 5
+  
+  judge:
+    temperature: 0.2
+    max_tokens: 2048
+    analysis_depth: "comprehensive"
+
+# Configuration de la base de données
+database:
+  redis:
+    host: "redis"
+    port: 6379
+    db: 0
+    password: null
+    ssl: false
+    connection_pool_size: 10
+  
+  sqlite:
+    path: "/app/data/pharma_multiagent.db"
+    pool_size: 20
+    pool_timeout: 30
+
+# Configuration du logging
+logging:
+  level: "INFO"
+  format: "structured"
+  
+  handlers:
+    console:
+      enabled: true
+      level: "INFO"
+    
+    file:
+      enabled: true
+      path: "/app/logs/pharma_multiagent.log"
+      level: "DEBUG"
+      rotation_size: "100MB"
+      retention_days: 30
+    
+    structured:
+      enabled: true
+      format: "json"
+      include_trace_id: true
+
+# Configuration de la sécurité
+security:
+  cors:
+    enabled: true
+    allow_origins: ["*"]
+    allow_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allow_headers: ["*"]
+  
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+    burst_size: 10
+  
+  authentication:
+    enabled: false  # Pour la démo
+    jwt_secret: "${JWT_SECRET}"
+    token_expiry: 3600
+
+# Configuration WebSocket
+websocket:
+  max_connections: 1000
+  heartbeat_interval: 30
+  message_queue_size: 1000
+  compression: true
+
+# Configuration du monitoring
+monitoring:
+  enabled: true
+  metrics:
+    port: 9090
+    path: "/metrics"
+  
+  health_checks:
+    enabled: true
+    interval: 30
+    timeout: 10
+  
+  alerts:
+    enabled: true
+    webhook_url: null
+    
+# Configuration des performances
+performance:
+  max_workers: 4
+  request_timeout: 300
+  keep_alive_timeout: 75
+  max_request_size: 16777216  # 16MB
+  
+  cache:
+    enabled: true
+    ttl: 3600
+    max_size: 1000
+
+# Configuration du kill switch
+kill_switch:
+  enabled: true
+  triggers:
+    - "consensus_failure"
+    - "validation_timeout"
+    - "system_error"
+    - "manual_intervention"
+  
+  actions:
+    - "stop_all_debates"
+    - "save_state"
+    - "send_alert"

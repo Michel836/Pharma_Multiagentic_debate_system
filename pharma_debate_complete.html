@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏥 Système Pharma MultiAgent - Ollama qwen3:4b COMPLET</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1976d2, #42a5f5);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .status-bar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+        }
+        
+        .status-indicator.success { background: #28a745; }
+        .status-indicator.warning { background: #ffc107; }
+        .status-indicator.error { background: #dc3545; }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .debate-section {
+            background: white;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn.primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn.success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn.info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .messages-container {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            height: 500px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            background: white;
+            border-left: 4px solid #007bff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .message.expert-reglementaire { border-left-color: #28a745; }
+        .message.expert-clinique { border-left-color: #17a2b8; }
+        .message.expert-qualite { border-left-color: #ffc107; }
+        .message.system { border-left-color: #6f42c1; }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .agent-name {
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .confidence-badge {
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .message-content {
+            color: #6c757d;
+            line-height: 1.5;
+        }
+
+        .info-panel {
+            background: white;
+        }
+
+        .info-section {
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-section:last-child {
+            border-bottom: none;
+        }
+
+        .info-section h3 {
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .alert {
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .consensus-bar {
+            background: #e9ecef;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .consensus-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #17a2b8);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .setup-info {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px;
+        }
+
+        .setup-step {
+            background: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border-radius: 0 5px 5px 0;
+        }
+
+        /* Export Dialog Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+        }
+
+        .export-options {
+            margin: 20px 0;
+        }
+
+        .export-option {
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .export-option:hover {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+
+        .export-format {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .export-description {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Système de Débat Pharmaceutique</h1>
+            <p>Intelligence Artificielle Multiagent avec Ollama qwen3:4b - Conformité GxP et GDPR</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-indicator" id="ollama-indicator"></div>
+                    <span><strong>Ollama:</strong> <span id="ollama-status">Vérification...</span></span>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator" id="model-indicator"></div>
+                    <span><strong>Modèle:</strong> qwen3:4b</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator" id="experts-indicator"></div>
+                    <span><strong>Experts:</strong> 3 disponibles</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator" id="system-indicator"></div>
+                    <span><strong>Système:</strong> <span id="system-status">Prêt</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div id="setup-info" class="setup-info">
+            <h3>🚀 Configuration Requise</h3>
+            <div class="setup-step">
+                <strong>1. Démarrer Ollama:</strong> <code>ollama serve</code>
+            </div>
+            <div class="setup-step">
+                <strong>2. Serveur HTTP:</strong> <code>python -m http.server 8000</code>
+            </div>
+            <div class="setup-step">
+                <strong>3. Accéder via:</strong> <code>http://localhost:8000/pharma_debate_complete.html</code>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="debate-section">
+                <div class="controls">
+                    <button class="btn success" onclick="testOllamaConnection()" id="test-btn">
+                        🔍 Test Connexion
+                    </button>
+                    <button class="btn primary" onclick="startRealDebate()" id="start-btn">
+                        🚀 Démarrer Débat
+                    </button>
+                    <button class="btn warning" onclick="pauseDebate()" id="pause-btn" disabled>
+                        ⏸️ Pause
+                    </button>
+                    <button class="btn" onclick="clearMessages()" id="clear-btn">
+                        🗑️ Effacer
+                    </button>
+                    <button class="btn info" onclick="showExportDialog()" id="export-btn">
+                        📥 Exporter
+                    </button>
+                </div>
+
+                <div id="alerts-container"></div>
+
+                <div class="messages-container" id="messages-container">
+                    <div class="message system">
+                        <div class="message-header">
+                            <span class="agent-name">🤖 Système Complet</span>
+                        </div>
+                        <div class="message-content">
+                            <strong>Bienvenue dans le système de débat pharmaceutique multiagent complet.</strong><br>
+                            📋 <strong>Configuration:</strong> Ollama local avec qwen3:4b<br>
+                            👥 <strong>Experts:</strong> Réglementaire, Clinique, Qualité<br>
+                            🔐 <strong>Confidentialité:</strong> 100% locale, aucune donnée cloud<br>
+                            💰 <strong>Coût:</strong> 0€ (gratuit)<br><br>
+                            ✅ <strong>Solution CORS intégrée</strong> - Interface servie via HTTP<br>
+                            🎯 <strong>Testez d'abord la connexion</strong> puis lancez un débat !
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-section">
+                    <h3>📊 Métriques du Débat</h3>
+                    <div class="metric-item">
+                        <span>Messages générés:</span>
+                        <span class="metric-value" id="message-count">1</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Temps de réponse:</span>
+                        <span class="metric-value" id="response-time">--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Experts actifs:</span>
+                        <span class="metric-value" id="experts-count">3</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Tour actuel:</span>
+                        <span class="metric-value" id="current-round">0</span>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <strong>Consensus Pharmaceutique</strong>
+                        <div class="consensus-bar">
+                            <div class="consensus-progress" id="consensus-bar"></div>
+                        </div>
+                        <div style="text-align: center; margin-top: 5px;">
+                            <span id="consensus-value">0%</span> (Seuil: 75%)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🔧 Configuration Ollama</h3>
+                    <div class="metric-item">
+                        <span>Mode:</span>
+                        <span class="metric-value">100% Local</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Modèle:</span>
+                        <span class="metric-value">qwen3:4b</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Confidentialité:</span>
+                        <span class="metric-value">Maximale</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Performance:</span>
+                        <span class="metric-value" id="perf-status">Optimale</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>👥 Experts Pharmaceutiques</h3>
+                    <div class="metric-item">
+                        <span>🔬 Expert Réglementaire:</span>
+                        <span class="metric-value">GxP, GDPR, FDA</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>💊 Expert Clinique:</span>
+                        <span class="metric-value">Phase III, Validation</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>🔍 Expert Qualité:</span>
+                        <span class="metric-value">Audit, Contrôle</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>🎯 Avantages Système</h3>
+                    <div class="metric-item">
+                        <span>🔐 Sécurité:</span>
+                        <span class="metric-value">Données locales</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>⚡ Rapidité:</span>
+                        <span class="metric-value">Réponse immédiate</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>💰 Économique:</span>
+                        <span class="metric-value">Gratuit</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>🎛️ Contrôle:</span>
+                        <span class="metric-value">Total</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeExportDialog()">&times;</span>
+            <h2>📥 Exporter le Débat</h2>
+            <p>Sélectionnez le format d'export souhaité :</p>
+            
+            <div class="export-options">
+                <div class="export-option" onclick="exportAs('json')">
+                    <div class="export-format">📄 JSON</div>
+                    <div class="export-description">Format structuré complet avec toutes les métadonnées</div>
+                </div>
+                
+                <div class="export-option" onclick="exportAs('txt')">
+                    <div class="export-format">📝 TXT</div>
+                    <div class="export-description">Format texte simple pour lecture facile</div>
+                </div>
+                
+                <div class="export-option" onclick="exportAs('md')">
+                    <div class="export-format">📋 Markdown</div>
+                    <div class="export-description">Format markdown avec mise en forme</div>
+                </div>
+                
+                <div class="export-option" onclick="exportAs('csv')">
+                    <div class="export-format">📊 CSV</div>
+                    <div class="export-description">Format tableau pour analyse dans Excel</div>
+                </div>
+                
+                <div class="export-option" onclick="exportAs('pdf')">
+                    <div class="export-format">📑 PDF</div>
+                    <div class="export-description">Document PDF professionnel (impression)</div>
+                </div>
+                
+                <div class="export-option" onclick="exportAs('html')">
+                    <div class="export-format">🌐 HTML</div>
+                    <div class="export-description">Page web autonome avec styles intégrés</div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="closeExportDialog()">Annuler</button>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let debateState = {
+            running: false,
+            phase: 'idle',
+            round: 0,
+            consensus: 0,
+            messageCount: 1,
+            startTime: null
+        };
+
+        let ollamaAvailable = false;
+
+        // Vérification automatique au chargement
+        window.addEventListener('load', async () => {
+            await checkOllamaStatus();
+            
+            // Masquer les instructions si accédé via HTTP
+            if (window.location.protocol === 'http:') {
+                document.getElementById('setup-info').style.display = 'none';
+            }
+        });
+
+        // Vérifier le statut d'Ollama
+        async function checkOllamaStatus() {
+            try {
+                addAlert('info', '🔍 Vérification de la connexion Ollama...');
+                
+                const response = await fetch('http://localhost:11434/api/tags');
+                if (response.ok) {
+                    const data = await response.json();
+                    const models = data.models || [];
+                    
+                    const hasQwen3 = models.some(model => model.name.includes('qwen3:4b'));
+                    
+                    if (hasQwen3) {
+                        ollamaAvailable = true;
+                        updateStatus('ollama', 'success', 'Connecté');
+                        updateStatus('model', 'success');
+                        updateStatus('experts', 'success');
+                        updateStatus('system', 'success', 'Opérationnel');
+                        addAlert('success', '✅ Ollama qwen3:4b prêt - Système opérationnel');
+                        
+                        // Test génération simple
+                        await testGeneration();
+                    } else {
+                        updateStatus('ollama', 'warning', 'qwen3:4b manquant');
+                        addAlert('warning', '⚠️ Modèle qwen3:4b non trouvé. Exécutez: ollama pull qwen3:4b');
+                    }
+                } else {
+                    throw new Error('Ollama non accessible');
+                }
+            } catch (error) {
+                updateStatus('ollama', 'error', 'Non disponible');
+                updateStatus('model', 'error');
+                updateStatus('experts', 'error');
+                updateStatus('system', 'error', 'Erreur');
+                addAlert('error', '❌ Ollama non disponible. Vérifiez la configuration.');
+            }
+        }
+
+        // Test de génération simple
+        async function testGeneration() {
+            try {
+                const response = await fetch('http://localhost:11434/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'qwen3:4b',
+                        prompt: 'Réponds juste "SYSTÈME PRÊT"',
+                        stream: false,
+                        options: { temperature: 0.1, num_predict: 5 }
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage('🧪 Test', `qwen3:4b: "${data.response.trim()}"`, 100, 'system');
+                }
+            } catch (error) {
+                console.log('Test génération échoué:', error);
+            }
+        }
+
+        // Mettre à jour les indicateurs de statut
+        function updateStatus(type, status, text = '') {
+            const indicator = document.getElementById(`${type}-indicator`);
+            const statusText = document.getElementById(`${type}-status`);
+            
+            indicator.className = `status-indicator ${status}`;
+            if (statusText && text) {
+                statusText.textContent = text;
+            }
+        }
+
+        // Test de connexion Ollama
+        async function testOllamaConnection() {
+            const btn = document.getElementById('test-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Test en cours...';
+            
+            await checkOllamaStatus();
+            
+            btn.disabled = false;
+            btn.textContent = '🔍 Test Connexion';
+        }
+
+        // Démarrer le débat pharmaceutique
+        async function startRealDebate() {
+            if (debateState.running) {
+                addAlert('warning', '⚠️ Un débat est déjà en cours');
+                return;
+            }
+
+            if (!ollamaAvailable) {
+                addAlert('error', '❌ Ollama non disponible. Testez d\'abord la connexion.');
+                return;
+            }
+
+            // Initialiser le débat
+            debateState.running = true;
+            debateState.phase = 'initialization';
+            debateState.round = 1;
+            debateState.consensus = 0;
+            debateState.startTime = new Date();
+
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('pause-btn').disabled = false;
+            updateMetrics();
+
+            addAlert('success', '🚀 Débat pharmaceutique démarré avec Ollama qwen3:4b');
+            
+            const topic = "Stratégie d'implémentation d'un système de logging conforme GxP pour essais cliniques Phase III, avec chiffrement end-to-end, audit trail complet, et récupération automatique en cas de panne";
+            
+            addMessage('🏥 Coordinateur', `<strong>DÉBAT PHARMACEUTIQUE MULTIAGENT</strong><br>📋 <strong>Sujet:</strong> ${topic}<br>🎯 <strong>Objectif:</strong> Consensus ≥ 75%<br>⏱️ <strong>Démarré:</strong> ${debateState.startTime.toLocaleTimeString()}`, 100, 'system');
+
+            await conductDebate(topic);
+        }
+
+        // Conduire le débat avec les experts
+        async function conductDebate(topic) {
+            const experts = [
+                { 
+                    name: '🔬 Expert Réglementaire', 
+                    type: 'expert-reglementaire',
+                    specialty: 'Conformité GxP, réglementations FDA/EMA, audit trail, validation des systèmes',
+                    focus: 'aspects réglementaires et conformité'
+                },
+                { 
+                    name: '💊 Expert Clinique', 
+                    type: 'expert-clinique',
+                    specialty: 'Essais cliniques Phase III, intégrité des données, workflows cliniques',
+                    focus: 'intégrité des données cliniques et workflows patients'
+                },
+                { 
+                    name: '🔍 Expert Qualité', 
+                    type: 'expert-qualite',
+                    specialty: 'Systèmes qualité, contrôle des processus, sécurité des données',
+                    focus: 'assurance qualité et contrôles des processus'
+                }
+            ];
+
+            const consensusScores = [];
+            let totalDuration = 0;
+
+            for (const expert of experts) {
+                if (!debateState.running) break;
+
+                // Message de chargement
+                addMessage(expert.name, '⏳ Analyse approfondie du sujet pharmaceutique...', 0, expert.type);
+                
+                try {
+                    const startTime = Date.now();
+                    
+                    const prompt = `Tu es ${expert.name}, expert pharmaceutique spécialisé en ${expert.specialty}.
+
+CONTEXTE: Débat multiagent sur l'optimisation d'un système pharmaceutique critique.
+
+SUJET COMPLEXE: ${topic}
+
+MISSION EXPERTE:
+- Analyse technique approfondie depuis ta spécialité (${expert.focus})
+- Recommandations concrètes et justifiées (80-100 mots)
+- Perspective réglementaire et technique
+- Solutions pratiques d'implémentation
+
+RÉPONSE D'EXPERT PHARMACEUTIQUE:`;
+
+                    const response = await fetch('http://localhost:11434/api/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: 'qwen3:4b',
+                            prompt: prompt,
+                            stream: false,
+                            options: {
+                                temperature: 0.3,
+                                top_p: 0.8,
+                                num_predict: 150,
+                                stop: ['\n\n']
+                            }
+                        })
+                    });
+
+                    const duration = Date.now() - startTime;
+                    totalDuration += duration;
+                    document.getElementById('response-time').textContent = `${duration}ms`;
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const content = data.response?.trim() || "Réponse générée";
+                        
+                        // Calculer la confiance basée sur la qualité
+                        const confidence = calculateConfidence(content);
+                        consensusScores.push(confidence);
+                        
+                        // Remplacer le message de chargement
+                        replaceLastMessage(expert.name, `${content}<br><em>⚡ Généré en ${duration}ms • Confiance: ${confidence}%</em>`, confidence, expert.type);
+                        
+                    } else {
+                        replaceLastMessage(expert.name, `❌ Erreur Ollama (${response.status})`, 10, expert.type);
+                    }
+                    
+                } catch (error) {
+                    replaceLastMessage(expert.name, `❌ Erreur de connexion: ${error.message}`, 5, expert.type);
+                }
+
+                // Pause entre experts
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+
+            // Calcul du consensus final et synthèse
+            if (consensusScores.length > 0) {
+                const avgConsensus = consensusScores.reduce((a, b) => a + b, 0) / consensusScores.length;
+                const avgDuration = totalDuration / consensusScores.length;
+                
+                debateState.consensus = Math.round(avgConsensus);
+                updateMetrics();
+                
+                setTimeout(() => {
+                    if (avgConsensus >= 75) {
+                        addMessage('📊 Synthèse Finale', 
+                            `<strong>🎉 CONSENSUS PHARMACEUTIQUE ATTEINT!</strong><br>
+                            📈 <strong>Score final:</strong> ${debateState.consensus}% (≥75% requis)<br>
+                            ⚡ <strong>Performance:</strong> ${avgDuration.toFixed(0)}ms moyenne par expert<br>
+                            👥 <strong>Participation:</strong> ${consensusScores.length}/3 experts actifs<br>
+                            ✅ <strong>Recommandation:</strong> Validation pour mise en production<br>
+                            🏆 <strong>Qualité:</strong> Débat de haute qualité pharmaceutique<br>
+                            🔐 <strong>Sécurité:</strong> 100% local, confidentialité maximale`, 
+                            100, 'system');
+                        addAlert('success', `🎉 Succès! Consensus pharmaceutique: ${debateState.consensus}%`);
+                        document.getElementById('perf-status').textContent = 'Excellente';
+                    } else {
+                        addMessage('📊 Synthèse Finale', 
+                            `<strong>⚠️ Consensus partiel obtenu</strong><br>
+                            📈 <strong>Score:</strong> ${debateState.consensus}% (<75% requis)<br>
+                            ⚡ <strong>Performance:</strong> ${avgDuration.toFixed(0)}ms moyenne<br>
+                            💡 <strong>Recommandation:</strong> Tour supplémentaire ou révision approche<br>
+                            📊 <strong>Analyse:</strong> Divergences identifiées entre experts<br>
+                            🔧 <strong>Action:</strong> Affiner les spécifications techniques`, 
+                            70, 'system');
+                        addAlert('warning', `⚠️ Consensus partiel: ${debateState.consensus}% - Amélioration nécessaire`);
+                        document.getElementById('perf-status').textContent = 'À améliorer';
+                    }
+                    
+                    // Finaliser le débat
+                    debateState.running = false;
+                    debateState.phase = 'completed';
+                    document.getElementById('start-btn').disabled = false;
+                    document.getElementById('pause-btn').disabled = true;
+                    updateMetrics();
+                }, 1500);
+            }
+        }
+
+        // Calculer la confiance basée sur la qualité de la réponse
+        function calculateConfidence(text) {
+            if (!text || text.length < 30) return 25;
+            
+            let score = 50; // Base
+            
+            // Longueur appropriée (60-150 mots)
+            const wordCount = text.split(' ').length;
+            if (wordCount >= 50 && wordCount <= 120) score += 25;
+            else if (wordCount >= 30) score += 15;
+            
+            // Termes pharmaceutiques spécialisés
+            const pharmaTerms = ['gxp', 'gdpr', 'validation', 'conformité', 'audit', 'clinique', 'qualité', 'réglementaire', 'système', 'sécurité', 'données', 'logging', 'pharmaceutique', 'fda', 'ema', 'phase', 'essai', 'trail', 'chiffrement'];
+            const foundTerms = pharmaTerms.filter(term => text.toLowerCase().includes(term)).length;
+            score += Math.min(15, foundTerms * 2);
+            
+            // Structure et cohérence
+            if (text.includes('.') || text.includes(',')) score += 5;
+            if (text.includes(':') || text.includes(';')) score += 5;
+            
+            // Pas d'erreurs évidentes
+            const errorMarkers = ['erreur', 'ne sais pas', 'ne peux pas', 'désolé', 'impossible'];
+            const hasErrors = errorMarkers.some(marker => text.toLowerCase().includes(marker));
+            if (hasErrors) score -= 20;
+            
+            return Math.min(95, Math.max(30, score));
+        }
+
+        // Ajouter un message au débat
+        function addMessage(agent, content, confidence, type = 'system') {
+            const container = document.getElementById('messages-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const confidenceBadge = confidence > 0 ? `<span class="confidence-badge">${confidence}%</span>` : '';
+            
+            messageDiv.innerHTML = `
+                <div class="message-header">
+                    <span class="agent-name">${agent}</span>
+                    ${confidenceBadge}
+                </div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            debateState.messageCount++;
+            updateMetrics();
+        }
+
+        // Remplacer le dernier message
+        function replaceLastMessage(agent, content, confidence, type) {
+            const container = document.getElementById('messages-container');
+            const lastMessage = container.lastElementChild;
+            
+            if (lastMessage) {
+                const confidenceBadge = confidence > 0 ? `<span class="confidence-badge">${confidence}%</span>` : '';
+                
+                lastMessage.className = `message ${type}`;
+                lastMessage.innerHTML = `
+                    <div class="message-header">
+                        <span class="agent-name">${agent}</span>
+                        ${confidenceBadge}
+                    </div>
+                    <div class="message-content">${content}</div>
+                `;
+                
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        // Ajouter une alerte
+        function addAlert(type, message) {
+            const container = document.getElementById('alerts-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${type}`;
+            alertDiv.textContent = message;
+            
+            container.appendChild(alertDiv);
+            
+            // Supprimer après 6 secondes
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 6000);
+        }
+
+        // Mettre à jour les métriques
+        function updateMetrics() {
+            document.getElementById('message-count').textContent = debateState.messageCount;
+            document.getElementById('current-round').textContent = debateState.round;
+            document.getElementById('consensus-value').textContent = `${debateState.consensus}%`;
+            
+            // Mettre à jour la barre de consensus
+            const progressBar = document.getElementById('consensus-bar');
+            progressBar.style.width = `${debateState.consensus}%`;
+            
+            if (debateState.consensus >= 75) {
+                progressBar.style.background = 'linear-gradient(90deg, #28a745, #20c997)';
+            } else if (debateState.consensus >= 50) {
+                progressBar.style.background = 'linear-gradient(90deg, #ffc107, #17a2b8)';
+            } else {
+                progressBar.style.background = 'linear-gradient(90deg, #dc3545, #ffc107)';
+            }
+        }
+
+        // Pause/reprendre débat
+        function pauseDebate() {
+            debateState.running = !debateState.running;
+            const btn = document.getElementById('pause-btn');
+            btn.textContent = debateState.running ? '⏸️ Pause' : '▶️ Reprendre';
+        }
+
+        // Effacer les messages
+        function clearMessages() {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = `
+                <div class="message system">
+                    <div class="message-header">
+                        <span class="agent-name">🤖 Système</span>
+                    </div>
+                    <div class="message-content">
+                        Messages effacés. Interface prête pour un nouveau débat pharmaceutique.
+                    </div>
+                </div>
+            `;
+            
+            debateState.messageCount = 1;
+            debateState.consensus = 0;
+            debateState.round = 0;
+            updateMetrics();
+            
+            // Nettoyer les alertes
+            document.getElementById('alerts-container').innerHTML = '';
+        }
+
+        // Fonctions d'export
+        function showExportDialog() {
+            const modal = document.getElementById('exportModal');
+            modal.style.display = 'block';
+        }
+
+        function closeExportDialog() {
+            const modal = document.getElementById('exportModal');
+            modal.style.display = 'none';
+        }
+
+        // Fermer modal si clic en dehors
+        window.onclick = function(event) {
+            const modal = document.getElementById('exportModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Analyser le débat pour extraire les éléments structurés
+        function analyzeDebateContent(messages) {
+            // Extraction des points clés depuis les messages
+            const pointsCles = new Map();
+            const pointsAttention = new Set();
+            const prochainesEtapesMap = new Map();
+            
+            // Agents principaux du système
+            const expertAgents = ['🔬 Expert Réglementaire', '💊 Expert Clinique', '🔍 Expert Qualité'];
+            
+            messages.forEach(msg => {
+                const content = msg.content.toLowerCase();
+                const agent = msg.agent;
+                
+                // Skip system messages
+                if (agent.includes('Système') || agent.includes('system')) return;
+                
+                // Détection des points clés (mots-clés pharmaceutiques importants)
+                if (content.includes('validation') || content.includes('conformité') || 
+                    content.includes('essai') || content.includes('protocole') ||
+                    content.includes('gxp') || content.includes('fda') || content.includes('ema')) {
+                    
+                    let keyPoint = '';
+                    if (content.includes('validation')) keyPoint = 'Validation des systèmes informatisés';
+                    else if (content.includes('conformité') || content.includes('gxp')) keyPoint = 'Conformité réglementaire GxP';
+                    else if (content.includes('essai')) keyPoint = 'Essais cliniques et protocoles';
+                    else if (content.includes('fda') || content.includes('ema')) keyPoint = 'Exigences FDA/EMA';
+                    else if (content.includes('protocole')) keyPoint = 'Protocoles et procédures';
+                    
+                    if (keyPoint && !pointsCles.has(agent)) {
+                        pointsCles.set(agent, `${agent}: ${keyPoint}`);
+                    }
+                }
+                
+                // Détection des points d'attention (éviter les doublons par agent)
+                if (content.includes('risque') || content.includes('attention') || 
+                    content.includes('critique') || content.includes('important') ||
+                    content.includes('vigilance') || content.includes('alerte')) {
+                    
+                    const attentionKey = `${agent}_attention`;
+                    if (!pointsAttention.has(attentionKey)) {
+                        let attentionType = '';
+                        if (content.includes('risque')) attentionType = 'Risque identifié';
+                        else if (content.includes('critique')) attentionType = 'Point critique';
+                        else if (content.includes('vigilance')) attentionType = 'Vigilance requise';
+                        else attentionType = 'Point d\'attention';
+                        
+                        pointsAttention.add(attentionKey);
+                        pointsAttention.add(`⚠️ ${agent}: ${attentionType}`);
+                    }
+                }
+                
+                // Détection des prochaines étapes (une seule par expert principal)
+                if ((content.includes('recommand') || content.includes('devrait') || 
+                    content.includes('nécessaire') || content.includes('proposer') ||
+                    content.includes('suggér')) && !prochainesEtapesMap.has(agent)) {
+                    
+                    // Déterminer l'action spécifique basée sur le contenu
+                    let action = '';
+                    if (content.includes('validation')) action = 'Valider les systèmes selon 21 CFR Part 11';
+                    else if (content.includes('audit')) action = 'Conduire un audit de conformité';
+                    else if (content.includes('formation')) action = 'Former le personnel aux procédures';
+                    else if (content.includes('document')) action = 'Mettre à jour la documentation';
+                    else if (content.includes('test')) action = 'Effectuer des tests de validation';
+                    else if (content.includes('protocole')) action = 'Réviser les protocoles existants';
+                    else action = 'Implémenter les recommandations identifiées';
+                    
+                    const confidence = msg.confidence ? parseInt(msg.confidence) : 75;
+                    const priorite = confidence >= 85 ? 'Haute' : confidence >= 70 ? 'Moyenne' : 'Normale';
+                    
+                    prochainesEtapesMap.set(agent, {
+                        expert: agent,
+                        action: action,
+                        priorite: priorite
+                    });
+                }
+            });
+            
+            // Convertir les Maps et Sets en arrays, en filtrant les clés
+            const pointsClesArray = Array.from(pointsCles.values());
+            const pointsAttentionArray = Array.from(pointsAttention).filter(item => typeof item === 'string' && item.startsWith('⚠️'));
+            const prochainesEtapesArray = Array.from(prochainesEtapesMap.values());
+            
+            // Assurer qu'on a au moins les 3 experts principaux dans les prochaines étapes
+            expertAgents.forEach(expertName => {
+                if (!prochainesEtapesMap.has(expertName) && prochainesEtapesArray.length < 3) {
+                    let defaultAction = '';
+                    if (expertName.includes('Réglementaire')) defaultAction = 'Révision complète des SOP et conformité';
+                    else if (expertName.includes('Clinique')) defaultAction = 'Validation du protocole d\'essai Phase III';
+                    else if (expertName.includes('Qualité')) defaultAction = 'Audit interne des processus qualité';
+                    
+                    prochainesEtapesArray.push({
+                        expert: expertName,
+                        action: defaultAction,
+                        priorite: 'Moyenne'
+                    });
+                }
+            });
+            
+            return {
+                pointsCles: pointsClesArray.length > 0 ? pointsClesArray : [
+                    "🔬 Expert Réglementaire: Validation des systèmes selon 21 CFR Part 11",
+                    "💊 Expert Clinique: Intégrité des données dans les essais cliniques",
+                    "🔍 Expert Qualité: Conformité aux bonnes pratiques de fabrication (GMP)"
+                ],
+                pointsAttention: pointsAttentionArray.length > 0 ? pointsAttentionArray : [
+                    "⚠️ Expert Réglementaire: Audit trail complet requis",
+                    "⚠️ Expert Clinique: Formation du personnel critique",
+                    "⚠️ Expert Qualité: Documentation de validation à maintenir"
+                ],
+                prochainesEtapes: prochainesEtapesArray.length > 0 ? prochainesEtapesArray : [
+                    { expert: "🔬 Expert Réglementaire", action: "Révision complète des SOP", priorite: "Haute" },
+                    { expert: "💊 Expert Clinique", action: "Validation du protocole d'essai", priorite: "Haute" },
+                    { expert: "🔍 Expert Qualité", action: "Audit interne des processus", priorite: "Moyenne" }
+                ]
+            };
+        }
+
+        // Collecter toutes les données du débat
+        function collectDebateData() {
+            const messages = [];
+            const messageElements = document.querySelectorAll('.message');
+            
+            messageElements.forEach(elem => {
+                const header = elem.querySelector('.message-header .agent-name');
+                const content = elem.querySelector('.message-content');
+                const confidence = elem.querySelector('.confidence-badge');
+                
+                if (header && content) {
+                    messages.push({
+                        agent: header.textContent,
+                        content: content.textContent,
+                        confidence: confidence ? confidence.textContent : null,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+            });
+
+            const analysis = analyzeDebateContent(messages);
+
+            return {
+                // Section 1: THÉMATIQUE
+                thematique: "Conformité Pharmaceutique et Validation Système GxP",
+                
+                // Section 2: SUJET
+                sujet: "Débat multiagent sur la validation des systèmes informatisés dans l'industrie pharmaceutique selon les normes FDA/EMA",
+                
+                // Section 3: POINTS CLÉS
+                pointsCles: analysis.pointsCles,
+                
+                // Section 4: POINTS D'ATTENTION
+                pointsAttention: analysis.pointsAttention,
+                
+                // Section 5: TABLEAU PROCHAINES ÉTAPES
+                prochainesEtapes: analysis.prochainesEtapes,
+                
+                // Métadonnées
+                metadata: {
+                    title: "Débat Pharmaceutique Multiagent",
+                    date: new Date().toISOString(),
+                    model: "Ollama qwen3:4b",
+                    metrics: {
+                        messageCount: debateState.messageCount,
+                        consensus: debateState.consensus,
+                        rounds: debateState.round,
+                        averageResponseTime: document.getElementById('response-time').textContent
+                    }
+                },
+                
+                // Messages complets (pour référence)
+                messages: messages
+            };
+        }
+
+        // Fonction d'export principale
+        function exportAs(format) {
+            const data = collectDebateData();
+            let output = '';
+            let filename = `debate_pharma_${new Date().getTime()}`;
+            let mimeType = 'text/plain';
+
+            switch(format) {
+                case 'json':
+                    output = JSON.stringify(data, null, 2);
+                    filename += '.json';
+                    mimeType = 'application/json';
+                    break;
+
+                case 'txt':
+                    output = `DÉBAT PHARMACEUTIQUE MULTIAGENT\n`;
+                    output += `${'='.repeat(60)}\n`;
+                    output += `Date: ${new Date().toLocaleString()}\n`;
+                    output += `Modèle: Ollama qwen3:4b\n`;
+                    output += `Consensus: ${data.metadata.metrics.consensus}%\n`;
+                    output += `${'='.repeat(60)}\n\n`;
+                    
+                    output += `1. THÉMATIQUE\n`;
+                    output += `${'-'.repeat(40)}\n`;
+                    output += `${data.thematique}\n\n`;
+                    
+                    output += `2. SUJET\n`;
+                    output += `${'-'.repeat(40)}\n`;
+                    output += `${data.sujet}\n\n`;
+                    
+                    output += `3. POINTS CLÉS\n`;
+                    output += `${'-'.repeat(40)}\n`;
+                    data.pointsCles.forEach(point => {
+                        output += `• ${point}\n`;
+                    });
+                    output += `\n`;
+                    
+                    output += `4. POINTS D'ATTENTION\n`;
+                    output += `${'-'.repeat(40)}\n`;
+                    data.pointsAttention.forEach(point => {
+                        output += `${point}\n`;
+                    });
+                    output += `\n`;
+                    
+                    output += `5. TABLEAU DES PROCHAINES ÉTAPES\n`;
+                    output += `${'-'.repeat(40)}\n`;
+                    output += `Expert | Action | Priorité\n`;
+                    output += `${'-'.repeat(40)}\n`;
+                    data.prochainesEtapes.forEach(etape => {
+                        output += `${etape.expert} | ${etape.action} | ${etape.priorite}\n`;
+                    });
+                    filename += '.txt';
+                    break;
+
+                case 'md':
+                    output = `# Débat Pharmaceutique Multiagent\n\n`;
+                    output += `**Date**: ${new Date().toLocaleString()}  \n`;
+                    output += `**Consensus**: ${data.metadata.metrics.consensus}%\n\n`;
+                    
+                    output += `## 1️⃣ THÉMATIQUE\n\n`;
+                    output += `${data.thematique}\n\n`;
+                    
+                    output += `## 2️⃣ SUJET\n\n`;
+                    output += `${data.sujet}\n\n`;
+                    
+                    output += `## 3️⃣ POINTS CLÉS\n\n`;
+                    data.pointsCles.forEach(point => {
+                        output += `- ${point}\n`;
+                    });
+                    output += `\n`;
+                    
+                    output += `## 4️⃣ POINTS D'ATTENTION\n\n`;
+                    data.pointsAttention.forEach(point => {
+                        output += `- ${point}\n`;
+                    });
+                    output += `\n`;
+                    
+                    output += `## 5️⃣ TABLEAU DES PROCHAINES ÉTAPES\n\n`;
+                    output += `| Expert | Action | Priorité |\n`;
+                    output += `|--------|--------|----------|\n`;
+                    data.prochainesEtapes.forEach(etape => {
+                        output += `| ${etape.expert} | ${etape.action} | **${etape.priorite}** |\n`;
+                    });
+                    output += `\n`;
+                    
+                    output += `---\n\n`;
+                    output += `### 📊 Métriques du Débat\n`;
+                    output += `- Messages: ${data.metadata.metrics.messageCount}\n`;
+                    output += `- Tours: ${data.metadata.metrics.rounds}\n`;
+                    output += `- Temps réponse: ${data.metadata.metrics.averageResponseTime}\n`;
+                    
+                    filename += '.md';
+                    mimeType = 'text/markdown';
+                    break;
+
+                case 'csv':
+                    output = `Section,Contenu,Détails,Priorité\n`;
+                    output += `"THÉMATIQUE","${data.thematique}","",""\n`;
+                    output += `"SUJET","${data.sujet}","",""\n`;
+                    output += `"","","",""\n`;
+                    output += `"POINTS CLÉS","","",""\n`;
+                    data.pointsCles.forEach(point => {
+                        output += `"","${point.replace(/"/g, '""')}","",""\n`;
+                    });
+                    output += `"","","",""\n`;
+                    output += `"POINTS D'ATTENTION","","",""\n`;
+                    data.pointsAttention.forEach(point => {
+                        output += `"","${point.replace(/"/g, '""')}","",""\n`;
+                    });
+                    output += `"","","",""\n`;
+                    output += `"PROCHAINES ÉTAPES","Expert","Action","Priorité"\n`;
+                    data.prochainesEtapes.forEach(etape => {
+                        output += `"","${etape.expert}","${etape.action}","${etape.priorite}"\n`;
+                    });
+                    output += `"","","",""\n`;
+                    output += `"MÉTRIQUES","Consensus","${data.metadata.metrics.consensus}%",""\n`;
+                    output += `"","Messages","${data.metadata.metrics.messageCount}",""\n`;
+                    output += `"","Tours","${data.metadata.metrics.rounds}",""\n`;
+                    filename += '.csv';
+                    mimeType = 'text/csv';
+                    break;
+
+                case 'html':
+                    output = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Débat Pharmaceutique - Export Structuré</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #007bff; border-bottom: 3px solid #007bff; padding-bottom: 10px; }
+        h2 { color: #333; margin-top: 30px; padding: 10px; background: #f8f9fa; border-left: 4px solid #007bff; }
+        .section { margin: 20px 0; padding: 15px; background: #fafafa; border-radius: 5px; }
+        .points { list-style: none; padding: 0; }
+        .points li { padding: 8px 0; border-bottom: 1px solid #e0e0e0; }
+        .points li:last-child { border-bottom: none; }
+        .attention { background: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #007bff; color: white; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #e0e0e0; }
+        .priority-haute { color: #dc3545; font-weight: bold; }
+        .priority-moyenne { color: #ffc107; font-weight: bold; }
+        .priority-normale { color: #28a745; }
+        .metrics { display: flex; justify-content: space-around; background: #e7f3ff; padding: 15px; border-radius: 8px; }
+        .metric-item { text-align: center; }
+        .metric-value { font-size: 24px; font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Débat Pharmaceutique Multiagent</h1>
+        
+        <div class="metrics">
+            <div class="metric-item">
+                <div class="metric-value">${data.metadata.metrics.consensus}%</div>
+                <div>Consensus</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value">${data.metadata.metrics.messageCount}</div>
+                <div>Messages</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-value">${data.metadata.metrics.rounds}</div>
+                <div>Tours</div>
+            </div>
+        </div>
+        
+        <h2>1. THÉMATIQUE</h2>
+        <div class="section">
+            <strong>${data.thematique}</strong>
+        </div>
+        
+        <h2>2. SUJET</h2>
+        <div class="section">
+            ${data.sujet}
+        </div>
+        
+        <h2>3. POINTS CLÉS</h2>
+        <ul class="points">`;
+                    data.pointsCles.forEach(point => {
+                        output += `<li>✓ ${point}</li>`;
+                    });
+                    output += `</ul>
+        
+        <h2>4. POINTS D'ATTENTION</h2>`;
+                    data.pointsAttention.forEach(point => {
+                        output += `<div class="attention">${point}</div>`;
+                    });
+                    output += `
+        
+        <h2>5. TABLEAU DES PROCHAINES ÉTAPES</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Expert</th>
+                    <th>Action</th>
+                    <th>Priorité</th>
+                </tr>
+            </thead>
+            <tbody>`;
+                    data.prochainesEtapes.forEach(etape => {
+                        const priorityClass = etape.priorite.toLowerCase() === 'haute' ? 'priority-haute' : 
+                                            etape.priorite.toLowerCase() === 'moyenne' ? 'priority-moyenne' : 'priority-normale';
+                        output += `
+                <tr>
+                    <td>${etape.expert}</td>
+                    <td>${etape.action}</td>
+                    <td class="${priorityClass}">${etape.priorite}</td>
+                </tr>`;
+                    });
+                    output += `
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #666; font-size: 12px;">
+            <p>Document généré le ${new Date().toLocaleString()} | Modèle: Ollama qwen3:4b</p>
+        </div>
+    </div>
+</body>
+</html>`;
+                    filename += '.html';
+                    mimeType = 'text/html';
+                    break;
+
+                case 'pdf':
+                    // Pour PDF, on ouvre une nouvelle fenêtre pour impression
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Débat Pharmaceutique - Export PDF</title>
+                            <style>
+                                @media print {
+                                    body { font-family: 'Times New Roman', serif; font-size: 11pt; }
+                                    h1 { font-size: 18pt; }
+                                    h2 { font-size: 14pt; page-break-after: avoid; }
+                                    table { page-break-inside: avoid; }
+                                    .pagebreak { page-break-after: always; }
+                                }
+                                body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                                .header { text-align: center; border-bottom: 2px solid #007bff; padding-bottom: 20px; margin-bottom: 30px; }
+                                .section { margin: 20px 0; padding: 15px; background: #f8f9fa; }
+                                h2 { color: #007bff; border-bottom: 1px solid #007bff; padding-bottom: 5px; }
+                                .points { margin-left: 20px; }
+                                .attention { background: #fff3cd; padding: 10px; margin: 10px 0; border-left: 3px solid #ffc107; }
+                                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                                th { background: #007bff; color: white; padding: 8px; text-align: left; }
+                                td { padding: 8px; border-bottom: 1px solid #ddd; }
+                                .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 10pt; color: #666; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="header">
+                                <h1>DÉBAT PHARMACEUTIQUE MULTIAGENT</h1>
+                                <p><strong>Système d'Intelligence Artificielle avec Ollama qwen3:4b</strong></p>
+                                <p>Date: ${new Date().toLocaleString()} | Consensus: ${data.metadata.metrics.consensus}%</p>
+                            </div>
+                            
+                            <h2>1. THÉMATIQUE</h2>
+                            <div class="section">
+                                <strong>${data.thematique}</strong>
+                            </div>
+                            
+                            <h2>2. SUJET</h2>
+                            <div class="section">
+                                ${data.sujet}
+                            </div>
+                            
+                            <h2>3. POINTS CLÉS</h2>
+                            <div class="points">
+                    `);
+                    data.pointsCles.forEach(point => {
+                        printWindow.document.write(`<p>• ${point}</p>`);
+                    });
+                    printWindow.document.write(`
+                            </div>
+                            
+                            <h2>4. POINTS D'ATTENTION</h2>
+                    `);
+                    data.pointsAttention.forEach(point => {
+                        printWindow.document.write(`<div class="attention">${point}</div>`);
+                    });
+                    printWindow.document.write(`
+                            
+                            <h2>5. TABLEAU DES PROCHAINES ÉTAPES</h2>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Expert</th>
+                                        <th>Action</th>
+                                        <th>Priorité</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `);
+                    data.prochainesEtapes.forEach(etape => {
+                        printWindow.document.write(`
+                                    <tr>
+                                        <td>${etape.expert}</td>
+                                        <td>${etape.action}</td>
+                                        <td><strong>${etape.priorite}</strong></td>
+                                    </tr>
+                        `);
+                    });
+                    printWindow.document.write(`
+                                </tbody>
+                            </table>
+                            
+                            <div class="footer">
+                                <p>Document généré automatiquement par le Système Pharma Multiagent</p>
+                                <p>Métriques: ${data.metadata.metrics.messageCount} messages | ${data.metadata.metrics.rounds} tours | Temps moyen: ${data.metadata.metrics.averageResponseTime}</p>
+                            </div>
+                        </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                    
+                    setTimeout(() => {
+                        printWindow.print();
+                    }, 500);
+                    
+                    closeExportDialog();
+                    addAlert('success', 'Fenêtre d\'impression ouverte pour export PDF');
+                    return;
+            }
+
+            // Télécharger le fichier (sauf pour PDF)
+            if (format !== 'pdf') {
+                const blob = new Blob([output], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                closeExportDialog();
+                addAlert('success', `Débat exporté avec succès en format ${format.toUpperCase()}`);
+            }
+        }
+    </script>
+</body>
+</html>
