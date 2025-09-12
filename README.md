@@ -466,6 +466,7 @@ Le **Système Multi-Agent Pharmaceutique** est maintenant **100% complet** et **
 ✅ **100% Local** et confidentiel (aucune donnée externe)
 
 **🚀 Prêt pour la démo vidéo et validation métier !**
+https://youtu.be/k0QaRFLe5LI
 
 ---
 
